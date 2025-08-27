@@ -120,7 +120,7 @@ export async function claimInvite(
   // Get invite
   const invite = await getInvite(token)
   if (!invite) throw new Error('Invalid invite')
-  if (invite.claimed_by_entry) throw new Error('Invite already claimed')
+  if (invite.claimed_by_user_id) throw new Error('Invite already claimed')
   
   // Check username uniqueness
   const { data: existing } = await client
@@ -415,7 +415,7 @@ export async function getUserLeagues(userId: string): Promise<League[]> {
   
   if (!entries) return []
   
-  return entries.map(entry => entry.league).filter(Boolean)
+  return entries.map(entry => entry.league).filter(Boolean) as unknown as League[]
 }
 
 // League Management Functions
