@@ -1,0 +1,24 @@
+[
+  {
+    "GameKey": "20240901_BUF_MIA",
+    "Status": "Final",
+    "HomeScore": 21,
+    "AwayScore": 24
+  },
+  {
+    "GameKey": "20240901_NE_NYJ",
+    "Status": "Final", 
+    "HomeScore": 17,
+    "AwayScore": 10
+  },
+  {
+    "GameKey": "20240908_KC_BAL",
+    "Status": "InProgress",
+    "HomeScore": 14,
+    "AwayScore": 7
+  },
+  {
+    "GameKey": "20240908_DAL_SF",
+    "Status": "Scheduled"
+  }
+]

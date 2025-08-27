@@ -1,0 +1,226 @@
+[
+  {
+    "TeamID": 1,
+    "Key": "ARI",
+    "City": "Arizona",
+    "Name": "Cardinals",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/7/72/Arizona_Cardinals_logo.svg"
+  },
+  {
+    "TeamID": 2,
+    "Key": "ATL",
+    "City": "Atlanta",
+    "Name": "Falcons",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/c/c5/Atlanta_Falcons_logo.svg"
+  },
+  {
+    "TeamID": 3,
+    "Key": "BAL",
+    "City": "Baltimore",
+    "Name": "Ravens",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/1/16/Baltimore_Ravens_logo.svg"
+  },
+  {
+    "TeamID": 4,
+    "Key": "BUF",
+    "City": "Buffalo",
+    "Name": "Bills",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/7/77/Buffalo_Bills_logo.svg"
+  },
+  {
+    "TeamID": 5,
+    "Key": "CAR",
+    "City": "Carolina",
+    "Name": "Panthers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/Carolina_Panthers_logo.svg"
+  },
+  {
+    "TeamID": 6,
+    "Key": "CHI",
+    "City": "Chicago",
+    "Name": "Bears",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Chicago_Bears_logo.svg"
+  },
+  {
+    "TeamID": 7,
+    "Key": "CIN",
+    "City": "Cincinnati",
+    "Name": "Bengals",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/8/81/Cincinnati_Bengals_logo.svg"
+  },
+  {
+    "TeamID": 8,
+    "Key": "CLE",
+    "City": "Cleveland",
+    "Name": "Browns",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/d/d9/Cleveland_Browns_logo.svg"
+  },
+  {
+    "TeamID": 9,
+    "Key": "DAL",
+    "City": "Dallas",
+    "Name": "Cowboys",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/1/15/Dallas_Cowboys.svg"
+  },
+  {
+    "TeamID": 10,
+    "Key": "DEN",
+    "City": "Denver",
+    "Name": "Broncos",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/4/44/Denver_Broncos_logo.svg"
+  },
+  {
+    "TeamID": 11,
+    "Key": "DET",
+    "City": "Detroit",
+    "Name": "Lions",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/7/71/Detroit_Lions_logo.svg"
+  },
+  {
+    "TeamID": 12,
+    "Key": "GB",
+    "City": "Green Bay",
+    "Name": "Packers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/5/50/Green_Bay_Packers_logo.svg"
+  },
+  {
+    "TeamID": 13,
+    "Key": "HOU",
+    "City": "Houston",
+    "Name": "Texans",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/2/28/Houston_Texans_logo.svg"
+  },
+  {
+    "TeamID": 14,
+    "Key": "IND",
+    "City": "Indianapolis",
+    "Name": "Colts",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/Indianapolis_Colts_logo.svg"
+  },
+  {
+    "TeamID": 15,
+    "Key": "JAX",
+    "City": "Jacksonville",
+    "Name": "Jaguars",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/7/74/Jacksonville_Jaguars_logo.svg"
+  },
+  {
+    "TeamID": 16,
+    "Key": "KC",
+    "City": "Kansas City",
+    "Name": "Chiefs",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg"
+  },
+  {
+    "TeamID": 17,
+    "Key": "LV",
+    "City": "Las Vegas",
+    "Name": "Raiders",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/e/ec/Las_Vegas_Raiders_logo.svg"
+  },
+  {
+    "TeamID": 18,
+    "Key": "LAC",
+    "City": "Los Angeles",
+    "Name": "Chargers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/7/72/Los_Angeles_Chargers_logo.svg"
+  },
+  {
+    "TeamID": 19,
+    "Key": "LAR",
+    "City": "Los Angeles",
+    "Name": "Rams",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/8/8a/Los_Angeles_Rams_logo.svg"
+  },
+  {
+    "TeamID": 20,
+    "Key": "MIA",
+    "City": "Miami",
+    "Name": "Dolphins",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/3/37/Miami_Dolphins_logo.svg"
+  },
+  {
+    "TeamID": 21,
+    "Key": "MIN",
+    "City": "Minnesota",
+    "Name": "Vikings",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/4/48/Minnesota_Vikings_logo.svg"
+  },
+  {
+    "TeamID": 22,
+    "Key": "NE",
+    "City": "New England",
+    "Name": "Patriots",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/b/b9/New_England_Patriots_logo.svg"
+  },
+  {
+    "TeamID": 23,
+    "Key": "NO",
+    "City": "New Orleans",
+    "Name": "Saints",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/5/50/New_Orleans_Saints_logo.svg"
+  },
+  {
+    "TeamID": 24,
+    "Key": "NYG",
+    "City": "New York",
+    "Name": "Giants",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/6/60/New_York_Giants_logo.svg"
+  },
+  {
+    "TeamID": 25,
+    "Key": "NYJ",
+    "City": "New York",
+    "Name": "Jets",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/6/6b/New_York_Jets_logo.svg"
+  },
+  {
+    "TeamID": 26,
+    "Key": "PHI",
+    "City": "Philadelphia",
+    "Name": "Eagles",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Philadelphia_Eagles_logo.svg"
+  },
+  {
+    "TeamID": 27,
+    "Key": "PIT",
+    "City": "Pittsburgh",
+    "Name": "Steelers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/Pittsburgh_Steelers_logo.svg"
+  },
+  {
+    "TeamID": 28,
+    "Key": "SF",
+    "City": "San Francisco",
+    "Name": "49ers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/San_Francisco_49ers_logo.svg"
+  },
+  {
+    "TeamID": 29,
+    "Key": "SEA",
+    "City": "Seattle",
+    "Name": "Seahawks",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Seattle_Seahawks_logo.svg"
+  },
+  {
+    "TeamID": 30,
+    "Key": "TB",
+    "City": "Tampa Bay",
+    "Name": "Buccaneers",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/a/a2/Tampa_Bay_Buccaneers_logo.svg"
+  },
+  {
+    "TeamID": 31,
+    "Key": "TEN",
+    "City": "Tennessee",
+    "Name": "Titans",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/en/c/c1/Tennessee_Titans_logo.svg"
+  },
+  {
+    "TeamID": 32,
+    "Key": "WAS",
+    "City": "Washington",
+    "Name": "Commanders",
+    "WikipediaLogoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Washington_Commanders_logo.svg"
+  }
+]

@@ -1,0 +1,214 @@
+import { USE_SUPABASE } from '../config'
+
+// Type exports
+export type { 
+  League, 
+  Invite, 
+  Entry, 
+  Session,
+  Pick,
+  Game,
+  Team,
+  NotSubmittedEntry,
+  LeaderboardEntry,
+  LeaguePhase
+} from './types'
+
+// Lazy import to enable treeshaking
+async function getAdapter() {
+  if (USE_SUPABASE) {
+    return await import('./adapters/supabase')
+  } else {
+    return await import('./adapters/local')
+  }
+}
+
+// Leagues
+export async function listLeagues() {
+  const adapter = await getAdapter()
+  return adapter.listLeagues()
+}
+
+export async function getLeagueByCode(leagueCode: string) {
+  const adapter = await getAdapter()
+  return adapter.getLeagueByCode(leagueCode)
+}
+
+export async function createLeague(params: {
+  name: string
+  season_year: number
+  buy_in_cents: number
+}) {
+  const adapter = await getAdapter()
+  return adapter.createLeague(params)
+}
+
+// Invites
+export async function createInvite(leagueId: string) {
+  const adapter = await getAdapter()
+  return adapter.createInvite(leagueId)
+}
+
+export async function getInvite(token: string) {
+  const adapter = await getAdapter()
+  return adapter.getInvite(token)
+}
+
+export async function listInvites(leagueId: string) {
+  const adapter = await getAdapter()
+  return adapter.listInvites(leagueId)
+}
+
+// Entries & Sessions
+export async function claimInvite(
+  token: string,
+  payload: {
+    username: string
+    displayName: string
+    pin: string
+  }
+) {
+  const adapter = await getAdapter()
+  return adapter.claimInvite(token, payload)
+}
+
+export async function login(username: string, pin: string) {
+  const adapter = await getAdapter()
+  return adapter.login(username, pin)
+}
+
+export async function getSession(sessionToken: string) {
+  const adapter = await getAdapter()
+  return adapter.getSession(sessionToken)
+}
+
+export async function logout(sessionToken: string) {
+  const adapter = await getAdapter()
+  return adapter.logout(sessionToken)
+}
+
+// Picks
+export async function listGames(leagueId: string, weekNo: number) {
+  const adapter = await getAdapter()
+  return adapter.listGames(leagueId, weekNo)
+}
+
+export async function getUsedTeams(entryId: string) {
+  const adapter = await getAdapter()
+  return adapter.getUsedTeams(entryId)
+}
+
+export async function getPickForWeek(entryId: string, weekNo: number) {
+  const adapter = await getAdapter()
+  return adapter.getPickForWeek(entryId, weekNo)
+}
+
+export async function savePick(params: {
+  entryId: string
+  leagueId: string
+  weekNo: number
+  teamAbbr: string
+}) {
+  const adapter = await getAdapter()
+  return adapter.savePick(params)
+}
+
+// Leaderboard
+export async function getLeaderboard(leagueId: string, weekNo: number) {
+  const adapter = await getAdapter()
+  return adapter.getLeaderboard(leagueId, weekNo)
+}
+
+// Weeks
+export async function getWeekState(leagueId: string, weekNo: number) {
+  const adapter = await getAdapter()
+  return adapter.getWeekState(leagueId, weekNo)
+}
+
+export async function revealIfReady(leagueId: string, weekNo: number) {
+  const adapter = await getAdapter()
+  return adapter.revealIfReady(leagueId, weekNo)
+}
+
+export async function forceRevealWeek(params: {
+  leagueId: string
+  weekNo: number
+  reason: string
+}) {
+  const adapter = await getAdapter()
+  return adapter.forceRevealWeek(params)
+}
+
+// Admin
+export async function markGameWinner(params: {
+  gameId: string
+  winnerAbbr: string
+  leagueId: string
+  weekNo: number
+}) {
+  const adapter = await getAdapter()
+  return adapter.markGameWinner(params)
+}
+
+export async function scoreWeek(params: {
+  leagueId: string
+  weekNo: number
+}) {
+  const adapter = await getAdapter()
+  return adapter.scoreWeek(params)
+}
+
+export async function getNotSubmitted(params: {
+  leagueId: string
+  weekNo: number
+}) {
+  const adapter = await getAdapter()
+  return adapter.getNotSubmitted(params)
+}
+
+// Teams seeding
+export async function seedTeamsFromStatic(staticTeams: Array<{
+  teamId: number
+  abbr: string
+  city: string
+  name: string
+  logoUrl: string
+}>) {
+  const adapter = await getAdapter()
+  return adapter.seedTeamsFromStatic(staticTeams)
+}
+
+// SportsDataIO Integration
+export async function importScheduleFromSportsDataIO(
+  seasonCode: string,
+  games: Array<{
+    gameId: string
+    dateUTC: string
+    homeAbbr: string
+    awayAbbr: string
+    neutralSite?: boolean
+    week: number
+  }>
+) {
+  const adapter = await getAdapter()
+  return adapter.importScheduleFromSportsDataIO(seasonCode, games)
+}
+
+export async function syncResultsFromSportsDataIO(
+  seasonCode: string,
+  week: number,
+  finalScores: Array<{
+    gameId: string
+    homeScore: number
+    awayScore: number
+  }>,
+  basicScores?: Array<{
+    gameId: string
+    status: 'Scheduled' | 'InProgress' | 'Final'
+    homeScore?: number
+    awayScore?: number
+  }>
+) {
+  const adapter = await getAdapter()
+  return adapter.syncResultsFromSportsDataIO(seasonCode, week, finalScores, basicScores)
+}

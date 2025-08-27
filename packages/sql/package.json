@@ -1,0 +1,6 @@
+{
+  "name": "sql",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SQL migrations and policies for Survivor Pool"
+}

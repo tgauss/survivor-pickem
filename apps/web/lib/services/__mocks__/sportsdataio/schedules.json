@@ -1,0 +1,82 @@
+[
+  {
+    "GameKey": "20240901_BUF_MIA",
+    "Date": "2024-09-01T17:00:00",
+    "HomeTeam": "MIA",
+    "AwayTeam": "BUF",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 1,
+    "SeasonType": 1
+  },
+  {
+    "GameKey": "20240901_NE_NYJ",
+    "Date": "2024-09-01T20:30:00",
+    "HomeTeam": "NYJ",
+    "AwayTeam": "NE",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 1,
+    "SeasonType": 1
+  },
+  {
+    "GameKey": "20240908_KC_BAL",
+    "Date": "2024-09-08T17:00:00",
+    "HomeTeam": "BAL",
+    "AwayTeam": "KC",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 2,
+    "SeasonType": 1
+  },
+  {
+    "GameKey": "20240908_DAL_SF",
+    "Date": "2024-09-08T20:30:00",
+    "HomeTeam": "SF",
+    "AwayTeam": "DAL",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 2,
+    "SeasonType": 1
+  },
+  {
+    "GameKey": "20250112_WC_GAME1",
+    "Date": "2025-01-12T17:00:00",
+    "HomeTeam": "KC",
+    "AwayTeam": "PIT",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 1,
+    "SeasonType": 3
+  },
+  {
+    "GameKey": "20250112_WC_GAME2",
+    "Date": "2025-01-12T20:30:00",
+    "HomeTeam": "BUF",
+    "AwayTeam": "LAR",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 1,
+    "SeasonType": 3
+  },
+  {
+    "GameKey": "20250119_DIV_GAME1",
+    "Date": "2025-01-19T17:00:00",
+    "HomeTeam": "KC",
+    "AwayTeam": "BUF",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 2,
+    "SeasonType": 3
+  },
+  {
+    "GameKey": "20250126_CONF_GAME1",
+    "Date": "2025-01-26T17:00:00",
+    "HomeTeam": "KC",
+    "AwayTeam": "PHI",
+    "NeutralVenue": false,
+    "Season": 2024,
+    "Week": 3,
+    "SeasonType": 3
+  }
+]

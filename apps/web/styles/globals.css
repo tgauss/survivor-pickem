@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './animations.css';
+
+@layer base {
+  :root {
+    --background: 26 26 42;
+    --foreground: 247 247 248;
+    --card: 57 57 64;
+    --card-foreground: 247 247 248;
+    --primary: 59 130 246;
+    --primary-foreground: 247 247 248;
+    --secondary: 65 65 74;
+    --secondary-foreground: 247 247 248;
+    --muted: 76 76 87;
+    --muted-foreground: 184 184 193;
+    --accent: 59 130 246;
+    --accent-foreground: 247 247 248;
+    --destructive: 239 68 68;
+    --destructive-foreground: 247 247 248;
+    --border: 76 76 87;
+    --input: 76 76 87;
+    --ring: 59 130 246;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-charcoal-950 text-charcoal-50 antialiased;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-charcoal-950;
+  }
+
+  .card-shadow {
+    @apply shadow-lg shadow-black/20;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
