@@ -3,20 +3,44 @@ export interface League {
   name: string
   season_year: number
   buy_in_cents: number
+  created_by_user_id: string
+  league_code: string
   created_at: string
-  league_code?: string
+  updated_at: string
+}
+
+export interface LeagueManager {
+  id: string
+  league_id: string
+  user_id: string
+  permissions: {
+    can_invite: boolean
+    can_manage_payments: boolean
+    can_manage_entries: boolean
+    can_manage_games: boolean
+  }
+  created_at: string
+}
+
+export interface User {
+  id: string
+  username: string // Globally unique
+  pin_hash: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  avatar_url: string | null
+  role: 'super_admin' | 'league_manager' | 'player'
+  created_at: string
+  updated_at: string
 }
 
 export interface Entry {
   id: string
   league_id: string
-  username: string
-  display_name: string
-  real_name: string
-  email: string
-  phone: string
-  pin_hash: string
-  avatar_url: string | null
+  user_id: string
+  display_name: string // How they appear in this league
   strikes: number
   eliminated: boolean
   opted_in: boolean
@@ -33,14 +57,18 @@ export interface Invite {
   id: string
   league_id: string
   token: string
-  claimed_by_entry: string | null
+  created_by_user_id: string
+  claimed_by_user_id: string | null
+  max_uses: number | null // null = unlimited
+  current_uses: number
+  expires_at: string | null
   created_at: string
   claimed_at: string | null
 }
 
 export interface Session {
   id: string
-  entry_id: string
+  user_id: string
   session_token: string
   expires_at: string
   created_at: string

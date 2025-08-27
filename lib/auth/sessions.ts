@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
-import { getSession } from '@/lib/data'
-import type { Session, Entry } from '@/lib/data/types'
+import { getSession, getUserSession } from '@/lib/data'
+import type { Session, Entry, User } from '@/lib/data/types'
 
 const COOKIE_NAME = 'survivor_session'
 const COOKIE_OPTIONS = {
@@ -32,6 +32,21 @@ export async function readSessionCookie(): Promise<{ entry: Entry; session: Sess
     return result
   }
   // If it's just a Session object, we can't use it without the entry
+  return null
+}
+
+export async function readUserSessionCookie(): Promise<{ user: User; session: Session } | null> {
+  const cookieStore = await cookies()
+  const sessionToken = cookieStore.get(COOKIE_NAME)?.value
+  
+  if (!sessionToken) return null
+  
+  const result = await getUserSession(sessionToken)
+  
+  if (!result) return null
+  if ('user' in result && 'session' in result) {
+    return result
+  }
   return null
 }
 

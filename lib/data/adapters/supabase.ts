@@ -5,6 +5,7 @@ import type {
   League, 
   Invite, 
   Entry, 
+  User,
   Session,
   Pick,
   Game,
@@ -184,14 +185,12 @@ export async function login(
 ): Promise<{ entry: Entry; sessionToken: string } | null> {
   const client = getClient()
   
-  // Hash the provided PIN to compare with stored hash
-  const hashedPin = CryptoJS.MD5(pin).toString()
-  
+  // For testing, compare PIN directly (no hashing)
   const { data: entry } = await client
     .from('entries')
     .select('*')
     .eq('username', username)
-    .eq('pin_hash', hashedPin)
+    .eq('pin_hash', pin)
     .single()
   
   if (!entry) return null
@@ -223,6 +222,361 @@ export async function getSession(sessionToken: string): Promise<Session | null> 
     .single()
   
   return data
+}
+
+// New User-based Authentication Functions
+export async function registerUser(userData: {
+  username: string
+  pin: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+}): Promise<{ user: User; sessionToken: string } | { error: string }> {
+  const client = getClient()
+  
+  // Check if username already exists
+  const { data: existingUser } = await client
+    .from('users')
+    .select('id')
+    .eq('username', userData.username)
+    .single()
+  
+  if (existingUser) {
+    return { error: 'Username already taken' }
+  }
+  
+  // Create user
+  const userId = uuidv4()
+  const { data: user, error } = await client
+    .from('users')
+    .insert({
+      id: userId,
+      username: userData.username,
+      pin_hash: userData.pin, // Plain text for testing
+      first_name: userData.firstName,
+      last_name: userData.lastName,
+      email: userData.email,
+      phone: userData.phone,
+      role: 'player',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+  
+  if (error || !user) {
+    return { error: 'Failed to create user' }
+  }
+  
+  // Create session
+  const sessionToken = uuidv4()
+  await client
+    .from('sessions')
+    .insert({
+      id: uuidv4(),
+      user_id: user.id,
+      session_token: sessionToken,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date().toISOString()
+    })
+  
+  return { user, sessionToken }
+}
+
+export async function loginUser(
+  username: string,
+  pin: string
+): Promise<{ user: User; sessionToken: string } | null> {
+  const client = getClient()
+  
+  const { data: user } = await client
+    .from('users')
+    .select('*')
+    .eq('username', username)
+    .eq('pin_hash', pin)
+    .single()
+  
+  if (!user) return null
+  
+  // Create session
+  const sessionToken = uuidv4()
+  await client
+    .from('sessions')
+    .insert({
+      id: uuidv4(),
+      user_id: user.id,
+      session_token: sessionToken,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date().toISOString()
+    })
+  
+  return { user, sessionToken }
+}
+
+export async function getUserSession(sessionToken: string): Promise<{ user: User; session: Session } | null> {
+  const client = getClient()
+  
+  const { data } = await client
+    .from('sessions')
+    .select('*, user:users(*)')
+    .eq('session_token', sessionToken)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+  
+  if (!data || !data.user) return null
+  
+  return {
+    session: data,
+    user: data.user
+  }
+}
+
+export async function claimLeagueInvite(
+  userId: string,
+  inviteToken: string,
+  displayName: string
+): Promise<{ entry: Entry } | { error: string }> {
+  const client = getClient()
+  
+  // Get invite
+  const { data: invite } = await client
+    .from('invites')
+    .select('*, league:leagues(*)')
+    .eq('token', inviteToken)
+    .single()
+  
+  if (!invite) {
+    return { error: 'Invalid invite code' }
+  }
+  
+  // Check if invite is still valid
+  if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+    return { error: 'Invite code has expired' }
+  }
+  
+  if (invite.max_uses && invite.current_uses >= invite.max_uses) {
+    return { error: 'Invite code has reached maximum uses' }
+  }
+  
+  // Check if user is already in this league
+  const { data: existingEntry } = await client
+    .from('entries')
+    .select('id')
+    .eq('league_id', invite.league_id)
+    .eq('user_id', userId)
+    .single()
+  
+  if (existingEntry) {
+    return { error: 'You are already a member of this league' }
+  }
+  
+  // Create entry
+  const entryId = uuidv4()
+  const { data: entry, error } = await client
+    .from('entries')
+    .insert({
+      id: entryId,
+      league_id: invite.league_id,
+      user_id: userId,
+      display_name: displayName,
+      strikes: 0,
+      eliminated: false,
+      opted_in: true,
+      paid: false,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+  
+  if (error || !entry) {
+    return { error: 'Failed to join league' }
+  }
+  
+  // Update invite usage
+  await client
+    .from('invites')
+    .update({
+      current_uses: invite.current_uses + 1,
+      claimed_at: new Date().toISOString()
+    })
+    .eq('id', invite.id)
+  
+  return { entry }
+}
+
+export async function getUserLeagues(userId: string): Promise<League[]> {
+  const client = getClient()
+  
+  const { data: entries } = await client
+    .from('entries')
+    .select('league:leagues(*)')
+    .eq('user_id', userId)
+  
+  if (!entries) return []
+  
+  return entries.map(entry => entry.league).filter(Boolean)
+}
+
+// League Management Functions
+export async function createLeagueInvite(
+  leagueId: string,
+  createdByUserId: string,
+  options: {
+    maxUses?: number
+    expiresAt?: string
+  } = {}
+): Promise<{ invite: Invite; inviteCode: string } | { error: string }> {
+  const client = getClient()
+  
+  // Check if user has permission to create invites for this league
+  const canManage = await canUserManageLeague(createdByUserId, leagueId)
+  if (!canManage) {
+    return { error: 'You do not have permission to create invites for this league' }
+  }
+  
+  const inviteToken = Math.random().toString(36).substring(2, 12).toUpperCase()
+  const inviteId = uuidv4()
+  
+  const { data: invite, error } = await client
+    .from('invites')
+    .insert({
+      id: inviteId,
+      league_id: leagueId,
+      token: inviteToken,
+      created_by_user_id: createdByUserId,
+      max_uses: options.maxUses || null,
+      current_uses: 0,
+      expires_at: options.expiresAt || null,
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+  
+  if (error || !invite) {
+    return { error: 'Failed to create invite' }
+  }
+  
+  return { invite, inviteCode: inviteToken }
+}
+
+export async function canUserManageLeague(userId: string, leagueId: string): Promise<boolean> {
+  const client = getClient()
+  
+  // Check if user is super admin
+  const { data: user } = await client
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  
+  if (user?.role === 'super_admin') return true
+  
+  // Check if user created the league
+  const { data: league } = await client
+    .from('leagues')
+    .select('created_by_user_id')
+    .eq('id', leagueId)
+    .single()
+  
+  if (league?.created_by_user_id === userId) return true
+  
+  // Check if user is a league manager
+  const { data: manager } = await client
+    .from('league_managers')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('league_id', leagueId)
+    .single()
+  
+  return !!manager
+}
+
+export async function setUserPaidStatus(
+  managerId: string,
+  leagueId: string,
+  entryId: string,
+  paid: boolean
+): Promise<{ success: boolean } | { error: string }> {
+  const client = getClient()
+  
+  // Check permissions
+  const canManage = await canUserManageLeague(managerId, leagueId)
+  if (!canManage) {
+    return { error: 'You do not have permission to manage payments for this league' }
+  }
+  
+  const { error } = await client
+    .from('entries')
+    .update({
+      paid,
+      paid_at: paid ? new Date().toISOString() : null
+    })
+    .eq('id', entryId)
+    .eq('league_id', leagueId)
+  
+  if (error) {
+    return { error: 'Failed to update payment status' }
+  }
+  
+  return { success: true }
+}
+
+export async function makeUserLeagueManager(
+  adminUserId: string,
+  leagueId: string,
+  targetUserId: string,
+  permissions: {
+    can_invite: boolean
+    can_manage_payments: boolean
+    can_manage_entries: boolean
+    can_manage_games: boolean
+  }
+): Promise<{ success: boolean } | { error: string }> {
+  const client = getClient()
+  
+  // Only super admins or league creators can assign managers
+  const { data: admin } = await client
+    .from('users')
+    .select('role')
+    .eq('id', adminUserId)
+    .single()
+  
+  const { data: league } = await client
+    .from('leagues')
+    .select('created_by_user_id')
+    .eq('id', leagueId)
+    .single()
+  
+  const canAssignManager = admin?.role === 'super_admin' || league?.created_by_user_id === adminUserId
+  
+  if (!canAssignManager) {
+    return { error: 'You do not have permission to assign league managers' }
+  }
+  
+  // Update user role to league_manager if they're currently just a player
+  await client
+    .from('users')
+    .update({ role: 'league_manager' })
+    .eq('id', targetUserId)
+    .eq('role', 'player')
+  
+  // Create or update league manager record
+  const { error } = await client
+    .from('league_managers')
+    .upsert({
+      id: uuidv4(),
+      league_id: leagueId,
+      user_id: targetUserId,
+      permissions,
+      created_at: new Date().toISOString()
+    })
+  
+  if (error) {
+    return { error: 'Failed to assign league manager' }
+  }
+  
+  return { success: true }
 }
 
 export async function logout(sessionToken: string): Promise<void> {

@@ -105,6 +105,67 @@ export async function logout(sessionToken: string) {
   return adapter.logout(sessionToken)
 }
 
+// New User-based Authentication Functions
+export async function registerUser(userData: {
+  username: string
+  pin: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+}) {
+  const adapter = await getAdapter()
+  return (adapter as any).registerUser(userData)
+}
+
+export async function loginUser(username: string, pin: string) {
+  const adapter = await getAdapter()
+  return (adapter as any).loginUser(username, pin)
+}
+
+export async function getUserSession(sessionToken: string) {
+  const adapter = await getAdapter()
+  return (adapter as any).getUserSession(sessionToken)
+}
+
+export async function claimLeagueInvite(userId: string, inviteToken: string, displayName: string) {
+  const adapter = await getAdapter()
+  return (adapter as any).claimLeagueInvite(userId, inviteToken, displayName)
+}
+
+export async function getUserLeagues(userId: string) {
+  const adapter = await getAdapter()
+  return (adapter as any).getUserLeagues(userId)
+}
+
+export async function createLeagueInvite(leagueId: string, createdByUserId: string, options: {
+  maxUses?: number
+  expiresAt?: string
+} = {}) {
+  const adapter = await getAdapter()
+  return (adapter as any).createLeagueInvite(leagueId, createdByUserId, options)
+}
+
+export async function canUserManageLeague(userId: string, leagueId: string) {
+  const adapter = await getAdapter()
+  return (adapter as any).canUserManageLeague(userId, leagueId)
+}
+
+export async function setUserPaidStatus(managerId: string, leagueId: string, entryId: string, paid: boolean) {
+  const adapter = await getAdapter()
+  return (adapter as any).setUserPaidStatus(managerId, leagueId, entryId, paid)
+}
+
+export async function makeUserLeagueManager(adminUserId: string, leagueId: string, targetUserId: string, permissions: {
+  can_invite: boolean
+  can_manage_payments: boolean
+  can_manage_entries: boolean
+  can_manage_games: boolean
+}) {
+  const adapter = await getAdapter()
+  return (adapter as any).makeUserLeagueManager(adminUserId, leagueId, targetUserId, permissions)
+}
+
 // Picks
 export async function listGames(leagueId: string, weekNo: number) {
   const adapter = await getAdapter()

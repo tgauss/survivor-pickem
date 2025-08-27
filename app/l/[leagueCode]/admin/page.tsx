@@ -609,14 +609,14 @@ export default function AdminPage() {
                                   <code className="text-xs font-mono text-blue-400 truncate">
                                     {invite.token}
                                   </code>
-                                  {invite.claimed_by_entry ? (
+                                  {invite.claimed_by_user_id ? (
                                     <Chip variant="success" size="sm">Claimed</Chip>
                                   ) : (
                                     <Chip variant="warning" size="sm">Available</Chip>
                                   )}
                                 </div>
                               </div>
-                              {!invite.claimed_by_entry && (
+                              {!invite.claimed_by_user_id && (
                                 <button
                                   onClick={() => copyToClipboard(getInviteUrl(invite.token), invite.token)}
                                   className="p-1 hover:bg-charcoal-700 rounded transition-colors"
