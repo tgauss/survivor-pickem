@@ -1,5 +1,6 @@
 import { createServerClient } from '../../supabase/server'
 import { v4 as uuidv4 } from 'uuid'
+import CryptoJS from 'crypto-js'
 import type { 
   League, 
   Invite, 
@@ -183,11 +184,14 @@ export async function login(
 ): Promise<{ entry: Entry; sessionToken: string } | null> {
   const client = getClient()
   
+  // Hash the provided PIN to compare with stored hash
+  const hashedPin = CryptoJS.MD5(pin).toString()
+  
   const { data: entry } = await client
     .from('entries')
     .select('*')
     .eq('username', username)
-    .eq('pin_hash', pin) // In production, hash and compare
+    .eq('pin_hash', hashedPin)
     .single()
   
   if (!entry) return null
