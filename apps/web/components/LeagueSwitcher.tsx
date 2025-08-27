@@ -35,14 +35,17 @@ export function LeagueSwitcher({ currentLeagueCode }: LeagueSwitcherProps) {
   const loadLeagues = async () => {
     try {
       const data = await listLeagues()
-      setLeagues(data)
-      
-      // Find current league by code
-      const current = data.find(l => {
-        const code = l.league_code || `${l.season_year}-${l.name.toLowerCase().replace(/\s+/g, '-')}`
-        return code === currentLeagueCode
-      })
-      setCurrentLeague(current || null)
+      if (data && Array.isArray(data)) {
+        const typedData = data as League[]
+        setLeagues(typedData)
+        
+        // Find current league by code
+        const current = typedData.find(l => {
+          const code = l.league_code || `${l.season_year}-${l.name.toLowerCase().replace(/\s+/g, '-')}`
+          return code === currentLeagueCode
+        })
+        setCurrentLeague(current || null)
+      }
     } catch (error) {
       console.error('Failed to load leagues:', error)
     }

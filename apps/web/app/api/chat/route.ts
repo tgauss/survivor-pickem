@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listMessages, postMessage } from '@/lib/data/adapters/local'
-import { getSessionFromCookies } from '@/lib/auth'
+import { readSessionCookie } from '@/lib/auth/sessions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionFromCookies()
+    const session = await readSessionCookie()
     if (!session) {
       return NextResponse.json(
         { error: 'Authentication required' },

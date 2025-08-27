@@ -14,18 +14,23 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = login(username, pin)
+    const result = await login(username, pin)
 
-    if ('error' in result) {
+    if (!result || 'error' in result) {
       return NextResponse.json(
-        { error: result.error },
+        { error: result ? result.error : 'Login failed' },
         { status: 401 }
       )
     }
 
+    const sessionToken = 'sessionToken' in result ? result.sessionToken : result.session_token
+    const expiresAt = 'expires_at' in result 
+      ? result.expires_at 
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
     await createSessionCookie({
-      sessionToken: result.session_token,
-      expiresAt: result.expires_at,
+      sessionToken,
+      expiresAt,
     })
 
     return NextResponse.json({

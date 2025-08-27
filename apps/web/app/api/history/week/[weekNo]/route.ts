@@ -24,7 +24,7 @@ export async function GET(
       )
     }
 
-    const data = getLeaderboard(leagueId, weekNo)
+    const data = await getLeaderboard(leagueId, weekNo)
     
     if (!data) {
       return NextResponse.json(

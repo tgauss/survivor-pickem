@@ -318,7 +318,7 @@ export default function AdminPage() {
               
               <div className="mb-4 p-3 bg-charcoal-800 rounded border border-charcoal-700">
                 <p className="text-sm text-charcoal-400">
-                  <strong>Note:</strong> Team branding comes from the static teams JSON. Toggle <code className="text-blue-400">TEAM_BRANDING_MODE</code> to 'neutral' to disable logos and colors.
+                  <strong>Note:</strong> Team branding comes from the static teams JSON. Toggle <code className="text-blue-400">TEAM_BRANDING_MODE</code> to &apos;neutral&apos; to disable logos and colors.
                 </p>
               </div>
               

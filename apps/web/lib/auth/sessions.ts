@@ -24,7 +24,15 @@ export async function readSessionCookie(): Promise<{ entry: Entry; session: Sess
   
   if (!sessionToken) return null
   
-  return getSession(sessionToken)
+  const result = await getSession(sessionToken)
+  
+  // Handle different return types from getSession
+  if (!result) return null
+  if ('entry' in result && 'session' in result) {
+    return result
+  }
+  // If it's just a Session object, we can't use it without the entry
+  return null
 }
 
 export async function clearSessionCookie() {

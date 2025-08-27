@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revealIfReady } from '@/lib/data'
+import { revealIfReady, forceRevealWeek } from '@/lib/data'
 import { readSessionCookie } from '@/lib/auth/sessions'
 
 export async function POST(
@@ -40,13 +40,9 @@ export async function POST(
       )
     }
 
-    const result = revealIfReady(
-      leagueId,
-      weekNo,
-      force,
-      reason,
-      session.entry.id
-    )
+    const result = force 
+      ? forceRevealWeek({ leagueId, weekNo, reason: reason || 'Manual reveal' })
+      : revealIfReady(leagueId, weekNo)
 
     return NextResponse.json(result)
   } catch (error) {

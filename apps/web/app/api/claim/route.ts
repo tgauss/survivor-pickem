@@ -14,12 +14,9 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = claimInvite(token, {
+    const result = await claimInvite(token, {
       username,
-      display_name,
-      real_name,
-      email,
-      phone,
+      displayName: display_name,
       pin,
     })
 
@@ -30,9 +27,14 @@ export async function POST(request: Request) {
       )
     }
 
+    const sessionToken = 'sessionToken' in result ? result.sessionToken : result.session.session_token
+    const expiresAt = 'session' in result 
+      ? result.session.expires_at 
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    
     await createSessionCookie({
-      sessionToken: result.session.session_token,
-      expiresAt: result.session.expires_at,
+      sessionToken,
+      expiresAt,
     })
 
     return NextResponse.json({

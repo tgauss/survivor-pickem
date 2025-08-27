@@ -234,9 +234,7 @@ describe('SportsDataIO API Routes', () => {
         '2024REG',
         1,
         [{ gameId: '20240901_BUF_MIA', homeScore: 21, awayScore: 24 }],
-        [{ gameId: '2024090
-
-1_BUF_MIA', status: 'Final', homeScore: 21, awayScore: 24 }]
+        [{ gameId: '20240901_BUF_MIA', status: 'Final', homeScore: 21, awayScore: 24 }]
       )
       expect(result.success).toBe(true)
       expect(result.seasonCode).toBe('2024REG')

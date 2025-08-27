@@ -59,6 +59,11 @@ export async function listInvites(leagueId: string) {
   return adapter.listInvites(leagueId)
 }
 
+export async function getLeagueInvites(leagueId: string) {
+  const adapter = await getAdapter()
+  return adapter.getLeagueInvites(leagueId)
+}
+
 // Entries & Sessions
 export async function claimInvite(
   token: string,
@@ -117,6 +122,11 @@ export async function savePick(params: {
 export async function getLeaderboard(leagueId: string, weekNo: number) {
   const adapter = await getAdapter()
   return adapter.getLeaderboard(leagueId, weekNo)
+}
+
+export async function getPot(leagueId: string) {
+  const adapter = await getAdapter()
+  return adapter.getPot(leagueId)
 }
 
 // Weeks

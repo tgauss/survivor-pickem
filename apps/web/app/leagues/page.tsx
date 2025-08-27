@@ -19,7 +19,10 @@ export default function LeaguePickerPage() {
   const loadLeagues = async () => {
     try {
       const data = await listLeagues()
-      setLeagues(data)
+      // Type guard to ensure we have the correct League type
+      if (data && Array.isArray(data)) {
+        setLeagues(data as League[])
+      }
     } catch (error) {
       console.error('Failed to load leagues:', error)
     } finally {

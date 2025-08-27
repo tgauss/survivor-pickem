@@ -24,7 +24,7 @@ export async function GET(
       )
     }
 
-    const notSubmitted = getNotSubmitted(leagueId, weekNo)
+    const notSubmitted = getNotSubmitted({ leagueId, weekNo })
     
     return NextResponse.json({ notSubmitted })
   } catch (error) {

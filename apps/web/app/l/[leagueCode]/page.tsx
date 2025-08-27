@@ -157,7 +157,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
       if (session && session.entry.id === entry.id) {
         return (
           <Link
-            href={`/l/${data!.league.league_code || `${data!.league.season_year}-${data!.league.name.toLowerCase().replace(/\s+/g, '-')}`}/week/${data!.weekNo}`}
+            href={`/l/${params.leagueCode}/week/${data!.weekNo}`}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 text-white rounded-full text-xs font-medium hover:bg-blue-700 transition-colors"
           >
             <Clock className="w-3 h-3" />
@@ -199,7 +199,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
         if (!acc[teamAbbr]) acc[teamAbbr] = []
         acc[teamAbbr].push({
           displayName: entry.display_name,
-          avatarUrl: entry.avatar_url
+          avatarUrl: entry.avatar_url || undefined
         })
         return acc
       }, {} as Record<string, Array<{displayName: string; avatarUrl?: string}>>) 
@@ -262,7 +262,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
             {/* Navigation Links */}
             <div className="flex items-center gap-2">
               <Link
-                href={`/l/${data.league.league_code || `${data.league.season_year}-${data.league.name.toLowerCase().replace(/\s+/g, '-')}`}/history`}
+                href={`/l/${params.leagueCode}/history`}
                 className="p-1.5 hover:bg-charcoal-800 rounded transition-colors"
                 title="History"
               >
@@ -270,7 +270,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
               </Link>
               {session && (
                 <Link
-                  href={`/l/${data.league.league_code || `${data.league.season_year}-${data.league.name.toLowerCase().replace(/\s+/g, '-')}`}/me`}
+                  href={`/l/${params.leagueCode}/me`}
                   className="p-1.5 hover:bg-charcoal-800 rounded transition-colors"
                   title="My Profile"
                 >
@@ -286,7 +286,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
                     {session.entry.username}
                   </Chip>
                   <Link
-                    href={`/l/${data.league.league_code || `${data.league.season_year}-${data.league.name.toLowerCase().replace(/\s+/g, '-')}`}/admin`}
+                    href={`/l/${params.leagueCode}/admin`}
                     className="p-1.5 hover:bg-charcoal-800 rounded transition-colors"
                     title="Admin"
                   >

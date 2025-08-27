@@ -868,7 +868,7 @@ export function getMySeason(entryId: string): SeasonEntry[] {
     
     return {
       weekNo: week.week_no,
-      teamAbbr: pick?.team_abbr,
+      teamAbbr: pick?.team_abbr || undefined,
       result: pick?.result,
       opponentTeamAbbr,
       finalScore: game?.status === 'final' ? `${game.home_team.abbr} vs ${game.away_team.abbr}` : undefined,

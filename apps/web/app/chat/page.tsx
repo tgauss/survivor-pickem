@@ -188,7 +188,7 @@ export default function ChatPage() {
                     key={message.id}
                     message={message}
                     senderName={sender?.display_name || 'Unknown'}
-                    senderAvatar={sender?.avatar_url}
+                    senderAvatar={sender?.avatar_url || undefined}
                     isRevealed={isRevealed}
                     onReact={handleReact}
                   />

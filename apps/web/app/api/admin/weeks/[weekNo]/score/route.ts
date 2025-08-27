@@ -33,7 +33,7 @@ export async function POST(
       )
     }
 
-    const result = scoreWeek(leagueId, weekNo)
+    const result = scoreWeek({ leagueId, weekNo })
 
     if ('error' in result) {
       return NextResponse.json(

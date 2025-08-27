@@ -22,13 +22,14 @@ export async function POST(request: Request) {
     
     const allGames = [...regGames, ...postGames]
     
+    // allGames is already transformed by getSchedulesBasic
     const transformedGames = allGames.map(game => ({
-      gameId: game.GameKey,
-      dateUTC: game.Date,
-      homeAbbr: game.HomeTeam,
-      awayAbbr: game.AwayTeam,
-      neutralSite: game.NeutralVenue || false,
-      week: game.Week
+      gameId: game.gameId,
+      dateUTC: game.dateUTC,
+      homeAbbr: game.homeAbbr,
+      awayAbbr: game.awayAbbr,
+      neutralSite: game.neutralSite || false,
+      week: game.week
     }))
     
     importScheduleFromSportsDataIO(regSeasonCode, transformedGames)

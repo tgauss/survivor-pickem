@@ -93,7 +93,7 @@ export default function ClaimInvitePage() {
         <h1 className="text-2xl font-bold mb-2">Join League</h1>
         {invite && (
           <p className="text-charcoal-400 mb-6">
-            You've been invited to join <strong>{invite.league?.name}</strong>
+            You&apos;ve been invited to join <strong>{invite.league?.name}</strong>
           </p>
         )}
 

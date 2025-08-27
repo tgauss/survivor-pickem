@@ -14,7 +14,7 @@ export function TeamBrand({ abbr, children }: TeamBrandProps) {
   // Get team colors
   const primaryColor = sanitizeHex(team?.primaryColor)
   const secondaryColor = sanitizeHex(team?.secondaryColor) 
-  const tertiaryColor = sanitizeHex(team?.tertiaryColor)
+  const tertiaryColor = sanitizeHex(team?.tertiaryColor || undefined)
   
   // Compute text color
   const textColor = primaryColor 
@@ -24,18 +24,18 @@ export function TeamBrand({ abbr, children }: TeamBrandProps) {
     : DEFAULT_TEXT
   
   // Set CSS custom properties
-  const style: React.CSSProperties = {
+  const style = {
     '--team-text': textColor,
-  }
+  } as React.CSSProperties
   
   // Only apply colors in private mode
   if (BRANDING_MODE === 'private') {
-    if (primaryColor) style['--team-primary'] = primaryColor
-    if (secondaryColor) style['--team-secondary'] = secondaryColor
-    if (tertiaryColor) style['--team-tertiary'] = tertiaryColor
+    if (primaryColor) (style as any)['--team-primary'] = primaryColor
+    if (secondaryColor) (style as any)['--team-secondary'] = secondaryColor
+    if (tertiaryColor) (style as any)['--team-tertiary'] = tertiaryColor
   } else {
     // In neutral mode, provide default text color
-    style['--team-text'] = DEFAULT_TEXT
+    (style as any)['--team-text'] = DEFAULT_TEXT
   }
   
   return (

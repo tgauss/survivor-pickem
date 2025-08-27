@@ -42,18 +42,11 @@ export async function POST(request: Request) {
       getScoresBasic(seasonCode, actualWeek)
     ])
     
-    const transformedFinalScores = finalScores.map(score => ({
-      gameId: score.GameKey,
-      homeScore: score.HomeScore,
-      awayScore: score.AwayScore
-    }))
+    // finalScores is already transformed by getScoresFinal
+    const transformedFinalScores = finalScores
     
-    const transformedBasicScores = basicScores.map(score => ({
-      gameId: score.GameKey,
-      status: score.Status as 'Scheduled' | 'InProgress' | 'Final',
-      homeScore: score.HomeScore,
-      awayScore: score.AwayScore
-    }))
+    // basicScores is also already transformed by getScoresBasic
+    const transformedBasicScores = basicScores
     
     const syncResult = syncResultsFromSportsDataIO(
       seasonCode,

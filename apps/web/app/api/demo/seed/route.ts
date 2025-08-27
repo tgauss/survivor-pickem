@@ -42,14 +42,12 @@ export async function POST() {
   for (const u of users) {
     // Create invite and claim
     const invite = await createInvite(leagueId)
+    if (!invite) throw new Error('Failed to create invite')
+    
     const result = await claimInvite(invite.token, {
       username: u.username,
-      display_name: u.display_name,
-      real_name: u.real_name,
-      email: u.email,
-      phone: '',
-      pin: u.pin,
-      avatar_url: null
+      displayName: u.display_name,
+      pin: u.pin
     })
     if ('error' in result) {
       continue // Skip if user already exists
