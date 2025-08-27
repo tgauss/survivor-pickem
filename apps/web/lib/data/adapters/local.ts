@@ -1007,7 +1007,7 @@ export async function createTestWeek(weekNo: number, gamesCount: number = 2) {
 }
 
 // SportsDataIO integration functions
-export function importScheduleFromSportsDataIO(seasonCode: string, games: Array<{ 
+export function importScheduleFromSportsDataIO(seasonCode: string, importedGames: Array<{ 
   gameId: string; 
   dateUTC: string; 
   homeAbbr: string; 
@@ -1023,7 +1023,7 @@ export function importScheduleFromSportsDataIO(seasonCode: string, games: Array<
   // Create/update weeks as needed
   const weekIds = new Map<number, string>()
   
-  games.forEach(game => {
+  importedGames.forEach(game => {
     let weekNo = game.week
     let phase: 'regular' | 'wild_card' | 'divisional' | 'conference' = 'regular'
     
