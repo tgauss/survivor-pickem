@@ -9,9 +9,7 @@ export type {
   Pick,
   Game,
   Team,
-  NotSubmittedEntry,
-  LeaderboardEntry,
-  LeaguePhase
+  NotSubmittedEntry
 } from './types'
 
 // Lazy import to enable treeshaking
@@ -56,12 +54,12 @@ export async function getInvite(token: string) {
 
 export async function listInvites(leagueId: string) {
   const adapter = await getAdapter()
-  return adapter.listInvites(leagueId)
+  return (adapter as any).listInvites ? (adapter as any).listInvites(leagueId) : []
 }
 
 export async function getLeagueInvites(leagueId: string) {
   const adapter = await getAdapter()
-  return adapter.getLeagueInvites(leagueId)
+  return (adapter as any).getLeagueInvites ? (adapter as any).getLeagueInvites(leagueId) : []
 }
 
 // Entries & Sessions
@@ -74,7 +72,22 @@ export async function claimInvite(
   }
 ) {
   const adapter = await getAdapter()
-  return adapter.claimInvite(token, payload)
+  
+  if (USE_SUPABASE) {
+    // Supabase adapter expects { username, displayName, pin }
+    return (adapter as any).claimInvite(token, payload)
+  } else {
+    // Local adapter expects ClaimPayload format
+    const claimPayload = {
+      username: payload.username,
+      display_name: payload.displayName,
+      real_name: payload.displayName, // Use displayName as fallback
+      email: '', // Will be filled by adapter if needed
+      phone: '', // Will be filled by adapter if needed
+      pin: payload.pin
+    }
+    return (adapter as any).claimInvite(token, claimPayload)
+  }
 }
 
 export async function login(username: string, pin: string) {
@@ -126,7 +139,7 @@ export async function getLeaderboard(leagueId: string, weekNo: number) {
 
 export async function getPot(leagueId: string) {
   const adapter = await getAdapter()
-  return adapter.getPot(leagueId)
+  return (adapter as any).getPot ? (adapter as any).getPot(leagueId) : 0
 }
 
 // Weeks
@@ -146,7 +159,7 @@ export async function forceRevealWeek(params: {
   reason: string
 }) {
   const adapter = await getAdapter()
-  return adapter.forceRevealWeek(params)
+  return (adapter as any).forceRevealWeek(params)
 }
 
 // Admin
@@ -165,7 +178,14 @@ export async function scoreWeek(params: {
   weekNo: number
 }) {
   const adapter = await getAdapter()
-  return adapter.scoreWeek(params)
+  
+  if (USE_SUPABASE) {
+    // Supabase adapter expects a params object
+    return (adapter as any).scoreWeek(params)
+  } else {
+    // Local adapter expects separate parameters
+    return (adapter as any).scoreWeek(params.leagueId, params.weekNo)
+  }
 }
 
 export async function getNotSubmitted(params: {
@@ -173,7 +193,14 @@ export async function getNotSubmitted(params: {
   weekNo: number
 }) {
   const adapter = await getAdapter()
-  return adapter.getNotSubmitted(params)
+  
+  if (USE_SUPABASE) {
+    // Supabase adapter expects a params object
+    return (adapter as any).getNotSubmitted(params)
+  } else {
+    // Local adapter expects separate parameters
+    return (adapter as any).getNotSubmitted(params.leagueId, params.weekNo)
+  }
 }
 
 // Teams seeding

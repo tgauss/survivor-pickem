@@ -9,9 +9,7 @@ import type {
   Game,
   Team,
   NotSubmittedEntry,
-  LeaderboardEntry,
-  LeaderboardData,
-  LeaguePhase
+  LeaderboardData
 } from '../types'
 
 // Helper to get supabase client
@@ -269,7 +267,7 @@ export async function getUsedTeams(entryId: string): Promise<string[]> {
     .select('team:teams(abbr)')
     .eq('entry_id', entryId)
   
-  return data?.map(p => p.team?.abbr).filter(Boolean) || []
+  return data?.map((p: any) => p.team?.abbr).filter(Boolean) || []
 }
 
 export async function getPickForWeek(entryId: string, weekNo: number): Promise<Pick | null> {
@@ -452,7 +450,7 @@ export async function getWeekState(leagueId: string, weekNo: number) {
   
   if (!week) {
     // Create week if doesn't exist
-    const phase: LeaguePhase = weekNo === 0 ? 'regular' : 
+    const phase: 'regular' | 'wild_card' | 'divisional' | 'conference' | 'super_bowl' = weekNo === 0 ? 'regular' : 
                                weekNo === 1 ? 'wild_card' :
                                weekNo === 2 ? 'divisional' :
                                weekNo === 3 ? 'conference' : 'regular'
@@ -751,7 +749,7 @@ export async function importScheduleFromSportsDataIO(
       
       // Determine phase based on season type and week
       const isPlayoffs = seasonCode.includes('POST')
-      const phase: LeaguePhase = !isPlayoffs ? 'regular' :
+      const phase: 'regular' | 'wild_card' | 'divisional' | 'conference' | 'super_bowl' = !isPlayoffs ? 'regular' :
                                  weekNo === 1 ? 'wild_card' :
                                  weekNo === 2 ? 'divisional' :
                                  weekNo === 3 ? 'conference' : 'regular'

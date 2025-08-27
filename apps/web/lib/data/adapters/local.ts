@@ -1195,8 +1195,8 @@ export function syncResultsFromSportsDataIO(
 }
 
 // League resolver
-export function getLeagueByCode(leagueCode: string): { id: string; name: string; season_year: number; league_code: string } | null {
-  const leagues = listLeagues()
+export function getLeagueByCode(leagueCode: string): League | null {
+  seedWeekZero() // Ensure base structure exists
   return leagues.find(l => {
     const code = l.league_code || `${l.season_year}-${l.name.toLowerCase().replace(/\s+/g, '-')}`
     return code === leagueCode

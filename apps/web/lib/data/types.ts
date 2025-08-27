@@ -73,6 +73,8 @@ export interface Game {
   neutral_site: boolean
   status: 'scheduled' | 'in_progress' | 'final'
   winner_team: Team | null
+  home_score?: number
+  away_score?: number
 }
 
 export interface Pick {
