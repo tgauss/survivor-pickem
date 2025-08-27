@@ -1,4 +1,4 @@
-import teamsData from '../../../NFL Team Info.json'
+import teamsData from '../NFL Team Info.json'
 
 export interface TeamStatic {
   abbr: string
