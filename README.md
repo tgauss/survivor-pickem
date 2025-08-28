@@ -1,528 +1,402 @@
-# Survivor Pickem Web App
-
-A Next.js application for NFL survivor pool management with SportsDataIO integration.
-
-## Features
-
-- **League Management**: Create and manage survivor leagues with customizable buy-ins
-- **Real-time Data**: Integration with SportsDataIO for live NFL scores and schedules
-- **Admin Dashboard**: Comprehensive admin interface for league and game management
-- **Survivor Rules**: Classic survivor pool gameplay with all-out survive protection
-- **User Interface**: Modern, responsive design with dark theme
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- SportsDataIO API key (optional for development)
-
-### Environment Setup
-
-Copy `.env.local.example` to `.env.local` and configure:
-
-```bash
-# SportsDataIO API Configuration
-SPORTSDATA_API_KEY=your_api_key_here
-SPORTSDATA_BASE_URL=https://api.sportsdata.io/v3/nfl
-SPORTSDATA_USE_QUERY_KEY=false
-
-# Other environment variables...
-```
-
-### Installation
-
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-## Team Data Management
-
-The application uses static team data as the canonical source for NFL team information, branding, and metadata. This ensures consistent team colors, logos, and styling throughout the application.
-
-### Static Teams Data
-
-Team data is loaded from the static JSON file at the repository root:
-- **Source File**: `NFL Team Info.json` 
-- **Teams Count**: 32 NFL teams with complete metadata
-- **Fields**: TeamID, Key (abbreviation), City, Name, FullName, Colors, LogoURL, WordMarkURL
-
-### Team Loader (`lib/teams.ts`)
-
-The teams loader provides a type-safe interface for accessing team data:
-
-```typescript
-import { getTeamByAbbr, requireTeamByAbbr, getTeamsArray } from '@/lib/teams'
-
-// Get team by abbreviation (returns undefined if not found)
-const chiefs = getTeamByAbbr('KC')
-
-// Require team by abbreviation (throws if not found)  
-const chiefs = requireTeamByAbbr('KC')
-
-// Get all teams as array
-const allTeams = getTeamsArray()
-```
-
-**Features:**
-- Hex color normalization (ensures #RRGGBB format)
-- Type-safe team lookup helpers
-- Validation and error handling
-- Consistent team abbreviations constant
-
-### Team Branding Integration
-
-Team branding is automatically applied throughout the UI:
-
-**Components with Branding:**
-- `TeamsGrid`: Shows team logos, colors, and gradients
-- `GameCard`: Team-colored buttons with logos and branding
-- API responses enriched with team metadata
-
-**Team Enrichment (`lib/team-enricher.ts`):**
-```typescript
-import { enrichGame, enrichTeam } from '@/lib/team-enricher'
-
-// Enrich basic team data with full branding
-const enrichedTeam = enrichTeam(basicTeam)
-// Returns: primaryColor, secondaryColor, fullName, wordMarkUrl, etc.
-```
-
-### Admin Team Management
-
-Administrators can seed/update team data in the database:
-
-**Seed Teams API**: `POST /api/admin/teams/seed`
-- Updates both local and Supabase adapters
-- Replaces existing team data with static JSON
-- Maintains referential integrity with games and schedules
-
-**Usage:**
-```bash
-curl -X POST http://localhost:3000/api/admin/teams/seed
-```
-
-### Data Adapter Integration
-
-Both data adapters support static teams seeding:
-
-**Local Adapter**: Seeds in-memory teams array
-**Supabase Adapter**: Upserts teams table with static data
-
-The schedule import functions automatically reference seeded teams by abbreviation, ensuring consistency between team metadata and game data.
-
-### Testing
-
-Comprehensive test coverage includes:
-```bash
-# Run teams loader tests
-npm test lib/__tests__/teams.test.ts
-
-# Run team enricher tests  
-npm test lib/__tests__/team-enricher.test.ts
-
-# Run branding component tests
-npm test __tests__/PickBadge.snapshot.test.tsx
-
-# Run color utility tests
-npm test __tests__/color.util.test.ts
-
-# Run API branding tests
-npm test __tests__/branding.payload.test.ts
-```
-
-**Test Coverage:**
-- Static data validation (32 teams, valid URLs, colors)
-- Team lookup functions (by abbreviation, error handling)  
-- Team enrichment (branding injection, type safety)
-- Data consistency across functions
-- Branding component snapshots and accessibility
-- Color utility functions and contrast calculations
-- API payload enrichment verification
-
-## Team Branding
-
-The application provides configurable team branding that respects user preferences and accessibility requirements.
-
-### Configuration
-
-Control team branding display via environment variable:
-
-```bash
-# .env.local
-TEAM_BRANDING_MODE=neutral   # neutral | private
-```
-
-**Modes:**
-- `neutral`: Clean, consistent UI without team colors or logos
-- `private`: Full team branding with colors, logos, and styling
-
-### Branding Components
-
-**Core Components:**
-- `TeamLogo`: Displays team logo (private mode) or abbreviation monogram (neutral mode)
-- `TeamBrand`: Provides CSS custom properties for team colors and text contrast
-- `PickBadge`: Shows team selection with branding and animations
-- `TeamStack`: Groups multiple picks by team in collapsible sections
-
-**Usage Example:**
-```tsx
-import { PickBadge, TeamBrand, TeamLogo } from '@/components/brand'
-
-// Show user's pick with team branding
-<PickBadge abbr="KC" label="YOU" />
-
-// Custom branded component
-<TeamBrand abbr="KC">
-  <div style={{ backgroundColor: 'var(--team-primary)' }}>
-    <TeamLogo abbr="KC" size={24} />
-  </div>
-</TeamBrand>
-```
-
-### UI Integration
-
-**Leaderboard Page:**
-- After reveal: Pick badges replace generic team abbreviations
-- Pick stacks: Collapsible sections group entries by team choice
-- Fade-in animations with staggered timing for entry cards
-
-**Week Selection Page:**
-- Team-colored buttons in game selection (respecting branding mode)
-- Diagonal stripe overlay for previously used teams
-- Pulse animation on successful pick submission
-
-**Distribution Charts:**
-- Team logos in legend (private mode) or abbreviation pills (neutral mode)
-- Color-coded charts use team branding or neutral palette
-
-### Accessibility
-
-**Color Contrast:**
-- Automatic text color calculation using luminance-based contrast ratios
-- Always meets WCAG AA standards for readability
-- Fallback to neutral colors when team colors have poor contrast
-
-**Motion Respect:**
-```css
-@media (prefers-reduced-motion: reduce) {
-  /* All animations disabled, instant transitions */
-}
-```
-
-**Keyboard Navigation:**
-- All branded components maintain focus indicators
-- Team logos include proper alt text and ARIA labels
-
-### Performance
-
-**Optimizations:**
-- Team data cached in memory after initial load
-- CSS custom properties avoid re-renders for color changes
-- Animations use transform/opacity for hardware acceleration
-- Static team JSON eliminates runtime API calls
-
-**Bundle Impact:**
-- Team branding adds ~15KB to bundle (compressed)
-- Tree-shaking removes unused animation classes
-- Lazy loading for team logos in private mode
-
-## SportsDataIO Integration
-
-This application integrates with SportsDataIO to provide real-time NFL schedules and game results. **Note: Team data is sourced from static JSON, not SportsDataIO.**
-
-### Supported Endpoints
-
-- **Current Timeframe**: `/Timeframes/current` - Current season/week information  
-- **Schedules**: `/Schedules/{seasonCode}` - Game schedules for regular and postseason
-- **Basic Scores**: `/ScoresBasic/{seasonCode}/{week}` - Live game scores and status
-- **Final Scores**: `/ScoresByWeekFinal/{seasonCode}/{week}` - Final game results
-
-### Configuration
-
-The SportsDataIO service supports both header-based and query parameter authentication:
-
-- **Header Authentication** (default): Uses `Ocp-Apim-Subscription-Key` header
-- **Query Parameter**: Set `SPORTSDATA_USE_QUERY_KEY=true` to use `?key=` parameter
-
-### Mock Data
-
-When `SPORTSDATA_API_KEY` is not configured, the service automatically falls back to mock data for development:
-
-- 32 NFL teams with logos and abbreviations
-- Sample regular season and playoff schedules
-- Example game scores and statuses
-- Current timeframe data
-
-### Admin Features
-
-The admin dashboard provides SportsDataIO integration controls:
-
-#### Import Schedule  
-Imports complete season schedules (regular season + playoffs) for the selected league's season year.
-
-#### Sync Results
-Synchronizes game results for a specific week, automatically triggering survivor pool scoring when games are final.
-
-### Playoff Week Mapping
-
-SportsDataIO playoff weeks are mapped to internal phase system:
-- Week 1 → `wild_card` 
-- Week 2 → `divisional`
-- Week 3 → `conference`
-- Week 4 → Super Bowl (not used in survivor pools)
-
-### API Integration Functions
-
-Two main integration functions handle data synchronization:
-
-#### `importScheduleFromSportsDataIO(seasonCode, games)`
-Creates weeks and games from SportsDataIO schedule data, with automatic playoff phase mapping.
-
-#### `syncResultsFromSportsDataIO(seasonCode, week, finalScores, basicScores?)`
-Updates game results and triggers automatic week scoring when final scores are available. Returns sync statistics including all-out survive detection.
-
-### Error Handling
-
-The SportsDataIO service includes robust error handling:
-
-- **Rate Limiting**: Automatic retry with exponential backoff for 429 errors
-- **Server Errors**: Retry logic for 5xx responses  
-- **Network Issues**: Graceful fallback to mock data
-- **Validation**: Zod schema validation for all API responses
-
-### Testing
-
-Comprehensive test coverage includes:
-
-```bash
-# Run SportsDataIO service tests
-npm test lib/services/__tests__/sportsdataio.test.ts
-
-# Run local adapter integration tests  
-npm test lib/data/adapters/__tests__/local-sportsdata.test.ts
-
-# Run API route tests
-npm test app/api/admin/sportsdata/__tests__/routes.test.ts
-```
-
-## Development
-
-### Project Structure
+# NFL Survivor Pool Platform
+
+## 🏈 Overview
+
+A comprehensive multi-league NFL Survivor Pool platform built with Next.js, TypeScript, and Supabase. The platform allows users to create and manage multiple survivor pools, make weekly picks, track standings, and simulate seasons for testing.
+
+**Live URL**: https://www.pickemparty.app
+
+## 📋 Table of Contents
+
+- [Platform Features](#platform-features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Environment Setup](#environment-setup)
+- [Database Schema](#database-schema)
+- [Current Issues](#current-issues)
+- [Developer Handoff Guide](#developer-handoff-guide)
+- [Claude AI Continuation Guide](#claude-ai-continuation-guide)
+
+## 🎯 Platform Features
+
+### Core Features (Completed)
+- ✅ **Multi-League Support**: Users can participate in multiple survivor pools
+- ✅ **User Authentication**: User-based login system with session management
+- ✅ **League Management**: Create leagues, generate invite codes, manage members
+- ✅ **Weekly Pick System**: Submit picks for each week with team restrictions
+- ✅ **Leaderboard & Standings**: Real-time standings with elimination tracking
+- ✅ **Week Navigation**: Navigate between weeks to view games and make picks
+- ✅ **Pot Tracking**: Automatic pot calculation ($25 per entry)
+- ✅ **Admin Controls**: Super admin capabilities for league management
+- ✅ **Season Simulation**: Tools to simulate games for testing
+
+### Recent Additions
+- ✅ Week navigation UI with current week indicator
+- ✅ Past week results viewer
+- ✅ Pick selection interface
+- ✅ Week simulation controls for testing
+- ✅ League switcher component
+
+### Planned Features
+- ⏳ Payment integration
+- ⏳ Email notifications
+- ⏳ Mobile app
+- ⏳ Advanced statistics and analytics
+- ⏳ Playoff bracket system
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Framework**: Next.js 14.2.32 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Custom component library in `/components`
+- **Icons**: Lucide React
+
+### Backend
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Custom session-based auth
+- **API**: Next.js API Routes
+- **Real-time**: Supabase Realtime (optional)
+
+### Infrastructure
+- **Hosting**: Vercel
+- **Domain**: pickemparty.app
+- **Environment**: Production + Development
+
+## 📁 Project Structure
 
 ```
-apps/web/
-├── app/                    # Next.js App Router
-│   ├── api/admin/sportsdata/  # SportsDataIO API routes
-│   └── admin/              # Admin dashboard
-├── lib/
-│   ├── services/           # External service clients
-│   │   ├── sportsdataio.ts    # SportsDataIO integration
-│   │   └── __mocks__/         # Mock data for development
-│   ├── data/adapters/      # Data layer adapters
-│   └── config.ts           # Configuration management
-└── components/             # React components
+/
+├── app/                      # Next.js app directory
+│   ├── api/                  # API routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── admin/           # Admin endpoints
+│   │   ├── weeks/           # Week-related endpoints
+│   │   ├── picks/           # Pick submission
+│   │   ├── me/              # User-specific endpoints
+│   │   └── debug/           # Debug endpoints
+│   ├── l/[leagueCode]/      # League-specific pages
+│   │   ├── week/[n]/        # Week view pages
+│   │   ├── admin/           # Admin panel
+│   │   └── me/              # User profile
+│   ├── login/               # Login page
+│   └── leagues/             # League selector
+├── components/              # React components
+│   ├── ui/                 # UI components
+│   ├── brand/              # Branding components
+│   ├── WeekNavigation.tsx  # Week navigation
+│   ├── WeekSimulator.tsx   # Simulation controls
+│   └── LeagueSwitcher.tsx  # League switcher
+├── lib/                     # Library code
+│   ├── data/               # Data layer
+│   │   ├── adapters/       # Database adapters
+│   │   │   ├── supabase.ts # Supabase adapter
+│   │   │   └── local.ts    # Local testing adapter
+│   │   └── types.ts        # TypeScript types
+│   ├── auth/               # Authentication
+│   │   └── sessions.ts     # Session management
+│   └── supabase/           # Supabase clients
+│       ├── client.ts       # Browser client
+│       └── server.ts       # Server client
+└── public/                 # Static assets
+    └── team-logos/         # NFL team logos
 ```
 
-### Adding New SportsDataIO Endpoints
+## 🔐 Environment Setup
 
-1. Add Zod schema for response validation
-2. Implement service function with retry logic
-3. Add corresponding mock data
-4. Create integration function in local adapter
-5. Add admin API route if needed
-6. Update admin UI with new functionality
-7. Write comprehensive tests
+### Required Environment Variables
 
-## League-scoped URLs
+Create a `.env.local` file for development:
 
-The application uses league-scoped URLs to support multiple leagues within a single deployment. All user and admin pages are scoped to a specific league using the pattern `/l/[leagueCode]/...`.
+```env
+# Data adapter mode
+USE_SUPABASE=true
 
-### URL Structure
+# Supabase Configuration
+SUPABASE_URL=https://bnhmkyliothxmuzvqato.supabase.co
+SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
-- **Leaderboard**: `/l/2024-survivor` 
-- **Make Pick**: `/l/2024-survivor/week/1`
-- **Profile**: `/l/2024-survivor/me`
-- **History**: `/l/2024-survivor/history` 
-- **Admin**: `/l/2024-survivor/admin`
-- **Claim Invite**: `/l/2024-survivor/claim/ABC123`
+# SportsDataIO API (optional)
+SPORTSDATAIO_API_KEY=your_api_key_here
 
-### League Codes
+# Session Configuration
+SESSION_COOKIE_NAME=survivor_session
+SESSION_SECRET=your_secret_here
 
-League codes are generated from the league name and season year:
-- `2024-nfl-survivor` → "NFL Survivor" league for 2024 season
-- `2024-family-pool` → "Family Pool" league for 2024 season
+# Admin Configuration
+SUPER_ADMIN_USERNAME=tgauss
+SUPER_ADMIN_PIN=3112
 
-Explicit league codes can also be set via the `league_code` field.
+# Team Branding
+TEAM_BRANDING_MODE=private
+```
 
-### Legacy Route Handling
+### Vercel Production Variables
 
-Legacy routes automatically redirect to league-scoped equivalents:
-- `/` → `/l/[last-league]` or `/leagues` if no last league
-- `/week/1` → `/l/[last-league]/week/1`
-- `/admin` → `/l/[last-league]/admin`
+See `.env.vercel` or `VERCEL_ENV_VARIABLES.txt` for production environment variables.
 
-The system uses a `last_league_code` cookie to remember the user's last visited league.
+## 💾 Database Schema
 
-### League Switching
+### Core Tables
 
-The header includes a league switcher dropdown allowing users to:
-- Switch between available leagues
-- View all leagues via `/leagues`  
-- Persist their league choice via cookie
+#### users
+```sql
+- id: uuid (PK)
+- username: text (unique)
+- pin_hash: text
+- first_name: text
+- last_name: text
+- email: text
+- phone: text
+- role: text ('player', 'admin', 'super_admin')
+- avatar_url: text
+- created_at: timestamp
+- updated_at: timestamp
+```
 
-### API Integration
+#### leagues
+```sql
+- id: uuid (PK)
+- league_code: text (unique)
+- name: text
+- season_year: integer
+- buy_in_cents: integer
+- created_at: timestamp
+- updated_at: timestamp
+```
 
-API routes support both `leagueCode` and `leagueId` parameters:
-- `GET /api/leaderboard?leagueCode=2024-survivor&weekNo=1`
-- `POST /api/picks` with `{ leagueCode: "2024-survivor", weekNo: 1, teamAbbr: "KC" }`
+#### entries
+```sql
+- id: uuid (PK)
+- league_id: uuid (FK -> leagues)
+- user_id: uuid (FK -> users)
+- display_name: text
+- username: text
+- pin_hash: text
+- strikes: integer
+- is_alive: boolean
+- paid: boolean
+- created_at: timestamp
+- updated_at: timestamp
+```
 
-The league context resolver automatically handles:
-- Query parameters (`?leagueCode=`)
-- Request body (`{ leagueCode: "..." }`)
-- Custom headers (`X-League-Code`)
-- Cookie fallback (`last_league_code`)
+#### picks
+```sql
+- id: uuid (PK)
+- entry_id: uuid (FK -> entries)
+- week_id: uuid (FK -> weeks)
+- team_id: uuid (FK -> teams)
+- submitted_at: timestamp
+- is_correct: boolean
+```
 
-## Switching to Supabase
+#### sessions
+```sql
+- id: uuid (PK)
+- user_id: uuid (FK -> users)
+- session_token: text (unique)
+- expires_at: timestamp
+- created_at: timestamp
+```
 
-The application supports both local (in-memory) and Supabase data adapters. By default, it uses the local adapter for development.
+#### teams
+```sql
+- id: uuid (PK)
+- abbr: text (unique)
+- city: text
+- name: text
+- logo_url: text
+```
 
-### Enabling Supabase
+#### games
+```sql
+- id: uuid (PK)
+- week_id: uuid (FK -> weeks)
+- home_team_id: uuid (FK -> teams)
+- away_team_id: uuid (FK -> teams)
+- winner_team_id: uuid (FK -> teams)
+- status: text
+- kickoff: timestamp
+```
 
-1. **Set Environment Variables**
+## 🐛 Current Issues
 
-   Update your `.env.local` file:
+### 🔴 Critical Issue: Session Cookie Not Being Set in Production
+
+**Status**: ACTIVE DEBUGGING (as of Aug 28, 2025)
+
+**Problem**: 
+- Users can successfully authenticate, but the `survivor_session` cookie is not being set in production
+- This causes "sign in required" errors on every navigation
+- Test cookies CAN be set successfully, indicating the issue is specific to the login flow
+
+**Debugging Progress**:
+1. ✅ Verified cookies can be set in production (test endpoint works)
+2. ✅ Confirmed login endpoint returns success response
+3. ✅ Added comprehensive logging to login endpoint
+4. ❌ Session cookie still not being set after login
+
+**Next Steps**:
+1. Check Vercel Function Logs for console output
+2. Verify `loginUser` function is returning sessionToken
+3. Check if Supabase connection is working in production
+
+**Related Files**:
+- `/app/api/auth/login-user/route.ts` - Login endpoint
+- `/lib/data/adapters/supabase.ts` - loginUser function
+- `/lib/auth/sessions.ts` - Session management
+
+### Other Known Issues
+- Week 0 references have been fixed but may need testing
+- Some API endpoints may still use old entry-based auth (being migrated)
+
+## 👨‍💻 Developer Handoff Guide
+
+### Getting Started
+
+1. **Clone the repository**
    ```bash
-   USE_SUPABASE=true
-   SUPABASE_URL=your-project-url
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   git clone https://github.com/tgauss/survivor-pickem.git
+   cd survivor-pickem
    ```
 
-2. **Apply Database Migrations**
-
-   Using Supabase MCP or the SQL editor, apply migrations in order:
-   ```sql
-   -- Apply in sequence:
-   -- 0001_initial_schema.sql
-   -- 0002_weeks_phase.sql
-   -- 0003_concealment_rollback.sql
-   -- 0004_indexes.sql
-   -- 0005_realtime_publication.sql
+2. **Install dependencies**
+   ```bash
+   npm install
    ```
 
-3. **Apply RLS Policies**
+3. **Set up environment variables**
+   - Copy `.env.local.example` to `.env.local`
+   - Add your Supabase credentials
 
-   Apply the RLS policies:
-   ```sql
-   -- packages/sql/policies/rls_supabase_base.sql
+4. **Run development server**
+   ```bash
+   npm run dev
    ```
 
-### Architecture Notes
-
-- **Service Role Authentication**: All database writes use the service role key server-side
-- **No Browser Writes**: The anon key is only used for realtime subscriptions
-- **RLS Enabled**: Row Level Security is enabled with stub policies for future expansion
-- **Realtime Updates**: Automatic UI updates when picks, games, or weeks change
-
-### Realtime Features
-
-When using Supabase, the application provides:
-
-- **Live Leaderboard Updates**: See picks and results in real-time
-- **Automatic Score Updates**: Results sync instantly when games finish  
-- **Pick Notifications**: Watch as other players submit their picks
-- **No Polling Required**: Replaces the 5-second polling with WebSocket subscriptions
-
-### Data Adapter Switching
-
-The adapter is chosen at runtime based on `USE_SUPABASE`:
-
-- `false` (default): Uses local in-memory adapter
-- `true`: Uses Supabase with PostgreSQL and realtime
-
-The switching logic in `lib/data/index.ts` ensures:
-- Tree-shaking removes unused adapter code
-- Async imports load only the active adapter
-- No Supabase dependencies when using local mode
-
-### Admin Dashboard
-
-The admin dashboard displays:
-- Current data adapter (Local or Supabase)
-- Realtime connection status (when using Supabase)
-- All existing admin functions work with both adapters
-
-## End-to-End Testing
-
-The application includes comprehensive Playwright end-to-end tests that verify the complete Survivor flow.
-
-### Running E2E Tests
+### Key Development Commands
 
 ```bash
-# Install Playwright browsers (one-time setup)
-npx playwright install --with-deps
-
-# Run all E2E tests
-npm run e2e
-
-# Run specific test file
-npx playwright test tests/e2e/01_invite_claim_login_pick.spec.ts
-
-# Run tests in headed mode (visible browser)
-npx playwright test --headed
-
-# Run tests in debug mode
-npx playwright test --debug
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run lint         # Run ESLint
+npm run typecheck    # Run TypeScript checks
 ```
 
-### Test Coverage
+### Testing Credentials
 
-**Complete User Journey Tests:**
-- `01_invite_claim_login_pick.spec.ts`: Full invite → claim → login → pick flow
-- `02_reveal_and_score.spec.ts`: Week scoring, reveal, and pick badge display
-- `03_all_out_survive_rollback.spec.ts`: All-out survive scenario with rollback behavior
-- `04_duplicate_pick_warning.spec.ts`: Duplicate team pick validation and warnings
-- `05_multi_league_switch.spec.ts`: Multi-league switching and data isolation
+- Username: `taylor` / PIN: `1234` (Super Admin)
+- Username: `jsmith` / PIN: `1234` (Regular User)
+- Username: `brandon` / PIN: `1234` (Regular User)
 
-**Key Features Tested:**
-- Hermetic test environment with no external dependencies
-- Admin invite generation and claim flow
-- Team selection with branding and duplicate warnings
-- Week scoring and reveal mechanics
-- All-out survive edge case handling
-- League switching and URL routing
+### Debugging Endpoints
 
-### Viewing Test Results
+- `/api/debug/env` - Check environment variables
+- `/api/debug/cookies` - Check current cookies
+- `/api/debug/set-session` - Test session cookie setting
+- `/api/debug/login-test` - Test cookie setting capability
 
-```bash
-# Open latest HTML report
-npx playwright show-report
+### Common Tasks
 
-# View specific trace file
-npx playwright show-trace test-results/path/to/trace.zip
-```
+#### Adding a New API Endpoint
+1. Create file in `/app/api/[path]/route.ts`
+2. Use `readUserSessionCookie()` for auth
+3. Add `credentials: 'same-origin'` to client fetch calls
 
-### Test-Only APIs
+#### Modifying Database Schema
+1. Update Supabase schema
+2. Update types in `/lib/data/types.ts`
+3. Update adapter functions in `/lib/data/adapters/supabase.ts`
 
-**Note:** Test-only API endpoints exist and only respond when `NODE_ENV==='test'`:
-- `POST /api/test/reset` - Resets local adapter with deterministic data
-- `POST /api/test/freeze-time` - Freezes time for consistent test behavior  
-- `POST /api/test/make-week` - Creates weeks with predictable games
+#### Deploying to Production
+1. Push to main branch
+2. Vercel auto-deploys
+3. Check Vercel dashboard for build status
 
-These endpoints are automatically blocked in production environments.
+## 🤖 Claude AI Continuation Guide
 
-## Deployment
+### For Claude to Continue This Project
 
-The application is built for deployment on platforms like Vercel, Netlify, or traditional hosting.
+**Context**: You are working on a NFL Survivor Pool platform that is mostly complete but has a critical authentication issue in production.
 
-```bash
-npm run build
-npm start
-```
+**Current Task**: Fix the session cookie not being set after login in production.
 
-Ensure all environment variables are configured in your deployment environment.# Force fresh deployment Wed Aug 27 21:07:21 PDT 2025
+**Key Files to Review First**:
+1. `/app/api/auth/login-user/route.ts` - The login endpoint with debugging
+2. `/lib/data/adapters/supabase.ts` - Contains loginUser function
+3. `/lib/auth/sessions.ts` - Session management utilities
+4. This README for full context
+
+**Testing Approach**:
+1. Use debug endpoints to verify cookie capabilities
+2. Check Vercel logs for console output
+3. Test locally first with: `npm run dev`
+4. Deploy with: `git push origin main`
+
+**Important Context**:
+- The platform uses user-based authentication (not entry-based)
+- Cookies work in test endpoints but not in login
+- All client fetch calls need `credentials: 'same-origin'`
+- The database is Supabase project: `bnhmkyliothxmuzvqato`
+
+**Next Debugging Steps**:
+1. Check if `loginUser` is throwing an error
+2. Verify sessionToken is being generated
+3. Check Supabase connection in production
+4. Review Network tab for Set-Cookie headers
+
+### Environment Variables Needed
+
+Make sure these are set in Vercel:
+- All variables from `VERCEL_ENV_VARIABLES.txt`
+- Ensure `SUPABASE_SERVICE_ROLE_KEY` is the actual service role key, not anon key
+
+### Contact & Support
+
+- **Repository**: https://github.com/tgauss/survivor-pickem
+- **Live Site**: https://www.pickemparty.app
+- **Supabase Project**: https://supabase.com/dashboard/project/bnhmkyliothxmuzvqato
+
+## 📅 Development Timeline
+
+### Phase 1: Core Platform (Completed)
+- Basic league and entry management
+- Pick submission system
+- Leaderboard functionality
+
+### Phase 2: User Migration (Completed)
+- Migrated from entry-based to user-based auth
+- Added user registration and login
+- Updated all endpoints for new auth system
+
+### Phase 3: Enhanced Features (Completed)
+- Week navigation UI
+- Season simulation tools
+- League switching
+- Pot tracking
+
+### Phase 4: Production Issues (Current)
+- Fixing session persistence
+- Debugging cookie issues
+- Stabilizing authentication
+
+### Phase 5: Future Enhancements (Planned)
+- Payment integration
+- Email notifications
+- Advanced analytics
+- Mobile application
+
+## 📝 Notes
+
+- The platform supports both Supabase and local adapters for flexibility
+- Team logos are stored locally in `/public/team-logos/`
+- The system uses plain text PINs for testing (should be hashed in production)
+- Real-time updates are optional and use Supabase Realtime when enabled
+
+---
+
+**Last Updated**: August 28, 2025
+**Version**: 1.0.0-beta
+**Status**: Production with active debugging
