@@ -6,16 +6,30 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { username, pin } = body
 
+    console.log('Login attempt for username:', username)
+
     if (!username || !pin) {
+      console.log('Missing username or PIN')
       return NextResponse.json(
         { error: 'Username and PIN are required' },
         { status: 400 }
       )
     }
 
-    const result = await loginUser(username, pin)
+    let result
+    try {
+      result = await loginUser(username, pin)
+      console.log('Login result:', result ? 'Success' : 'Failed')
+    } catch (loginError) {
+      console.error('Login error in loginUser function:', loginError)
+      return NextResponse.json(
+        { error: 'Database connection error' },
+        { status: 500 }
+      )
+    }
 
     if (!result) {
+      console.log('Login failed - invalid credentials')
       return NextResponse.json(
         { error: 'Invalid username or PIN' },
         { status: 401 }
@@ -23,6 +37,17 @@ export async function POST(request: Request) {
     }
 
     const { user, sessionToken } = result
+    
+    if (!sessionToken) {
+      console.error('No session token returned from loginUser')
+      return NextResponse.json(
+        { error: 'Failed to create session' },
+        { status: 500 }
+      )
+    }
+    
+    console.log('User logged in:', user.username, 'Session token:', sessionToken?.substring(0, 10) + '...')
+    
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
     // Create the response
