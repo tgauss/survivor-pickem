@@ -408,14 +408,22 @@ export async function claimLeagueInvite(
 export async function getUserLeagues(userId: string): Promise<League[]> {
   const client = getClient()
   
+  // First get the league IDs for this user
   const { data: entries } = await client
     .from('entries')
-    .select('league:leagues(*)')
+    .select('league_id')
     .eq('user_id', userId)
   
-  if (!entries) return []
+  if (!entries || entries.length === 0) return []
   
-  return entries.map(entry => entry.league).filter(Boolean) as unknown as League[]
+  // Get the actual league data
+  const leagueIds = entries.map(e => e.league_id)
+  const { data: leagues } = await client
+    .from('leagues')
+    .select('*')
+    .in('id', leagueIds)
+  
+  return leagues || []
 }
 
 // League Management Functions
