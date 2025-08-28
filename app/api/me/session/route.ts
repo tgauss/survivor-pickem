@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { readSessionCookie } from '@/lib/auth/sessions'
+import { readUserSessionCookie } from '@/lib/auth/sessions'
 
 export async function GET() {
   try {
-    const session = await readSessionCookie()
+    const session = await readUserSessionCookie()
     if (!session) {
       return NextResponse.json(
         { error: 'Not authenticated' },
@@ -12,7 +12,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      entry: session.entry,
+      user: session.user,
     })
   } catch (error) {
     console.error('Get session error:', error)
