@@ -100,9 +100,9 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
       // Load leaderboard data
       const leagueCode = params.leagueCode as string
       const [leaderboardRes, potRes, notSubmittedRes] = await Promise.all([
-        fetch(`/api/leaderboard?leagueCode=${leagueCode}&weekNo=0`),
+        fetch(`/api/leaderboard?leagueCode=${leagueCode}&weekNo=1`),
         fetch(`/api/league/pot?leagueCode=${leagueCode}`),
-        fetch(`/api/weeks/0/not-submitted?leagueCode=${leagueCode}`),
+        fetch(`/api/weeks/1/not-submitted?leagueCode=${leagueCode}`),
       ])
 
       const [leaderboardData, potData, notSubmittedData] = await Promise.all([
