@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { loginUser } from '@/lib/data'
-import { createSessionCookie } from '@/lib/auth/sessions'
 
 export async function POST(request: Request) {
   try {
@@ -24,14 +23,10 @@ export async function POST(request: Request) {
     }
 
     const { user, sessionToken } = result
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
-    await createSessionCookie({
-      sessionToken,
-      expiresAt,
-    })
-
-    return NextResponse.json({
+    // Create the response
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -42,6 +37,17 @@ export async function POST(request: Request) {
         role: user.role
       }
     })
+
+    // Set the cookie in the response
+    response.cookies.set('survivor_session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      expires: expiresAt,
+      path: '/'
+    })
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
