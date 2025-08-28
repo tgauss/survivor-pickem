@@ -38,7 +38,12 @@ interface LeaderboardData {
 }
 
 interface SessionData {
-  entry: Entry
+  user: {
+    id: string
+    username: string
+    email: string
+    role: string
+  }
 }
 
 export default function LeaderboardPage({ params }: { params: { leagueCode: string } }) {
@@ -157,7 +162,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
     }
     if (!entry.current_pick?.submitted) {
       // Show "Make Pick" link for logged-in user
-      if (session && session.entry.id === entry.id) {
+      if (session && session.user && entry.user_id === session.user.id) {
         return (
           <Link
             href={`/l/${params.leagueCode}/week/${data!.weekNo}`}
@@ -172,7 +177,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
     }
     if (entry.current_pick?.team_abbr && !data?.concealed) {
       // Show PickBadge when revealed
-      const isCurrentUser = session && session.entry.id === entry.id
+      const isCurrentUser = session && session.user && entry.user_id === session.user.id
       const label = isCurrentUser ? 'YOU' : entry.display_name
       return <PickBadge abbr={entry.current_pick.team_abbr} label={label} />
     }
@@ -286,7 +291,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
               {session ? (
                 <>
                   <Chip variant="default" size="sm">
-                    {session.entry.username}
+                    {session.user.username}
                   </Chip>
                   <Link
                     href={`/l/${params.leagueCode}/admin`}
