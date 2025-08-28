@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       }
     })
 
-    // Set the cookie in the response - simplified for production compatibility
+    // Set the cookie in the response
     response.cookies.set('survivor_session', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -47,9 +47,12 @@ export async function POST(request: Request) {
       path: '/'
     })
     
-    // Also try setting as a direct header for debugging
-    const cookieValue = `survivor_session=${sessionToken}; Path=/; Expires=${expiresAt.toUTCString()}; HttpOnly; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`
-    response.headers.set('Set-Cookie', cookieValue)
+    // Log for debugging
+    console.log('Setting session cookie:', {
+      token: sessionToken.substring(0, 10) + '...',
+      expires: expiresAt.toISOString(),
+      env: process.env.NODE_ENV
+    })
 
     return response
   } catch (error) {
