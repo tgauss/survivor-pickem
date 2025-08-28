@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { login } from '@/lib/data'
+import { loginUser } from '@/lib/data'
 import { createSessionCookie } from '@/lib/auth/sessions'
 
 export async function POST(request: Request) {
@@ -14,19 +14,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await login(username, pin)
+    const result = await loginUser(username, pin)
 
-    if (!result || 'error' in result) {
+    if (!result) {
       return NextResponse.json(
-        { error: result ? result.error : 'Login failed' },
+        { error: 'Invalid username or PIN' },
         { status: 401 }
       )
     }
 
-    const sessionToken = 'sessionToken' in result ? result.sessionToken : result.session_token
-    const expiresAt = 'expires_at' in result 
-      ? result.expires_at 
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const { user, sessionToken } = result
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
 
     await createSessionCookie({
       sessionToken,
@@ -35,6 +33,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        role: user.role
+      }
     })
   } catch (error) {
     console.error('Login error:', error)
