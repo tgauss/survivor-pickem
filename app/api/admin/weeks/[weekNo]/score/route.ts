@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
-import { scoreWeek } from '@/lib/data'
-import { readSessionCookie } from '@/lib/auth/sessions'
+import { scoreWeek, getLeagueByCode } from '@/lib/data'
+import { readUserSessionCookie } from '@/lib/auth/sessions'
 
 export async function POST(
   request: Request,
   { params }: { params: { weekNo: string } }
 ) {
   try {
-    const session = await readSessionCookie()
+    const session = await readUserSessionCookie()
     if (!session) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -16,11 +16,25 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { leagueId } = body
+    const { leagueId, leagueCode } = body
 
-    if (!leagueId) {
+    let finalLeagueId = leagueId
+    
+    // If leagueCode provided instead of leagueId, resolve it
+    if (leagueCode && !leagueId) {
+      const league = await getLeagueByCode(leagueCode)
+      if (!league) {
+        return NextResponse.json(
+          { error: 'League not found' },
+          { status: 404 }
+        )
+      }
+      finalLeagueId = league.id
+    }
+    
+    if (!finalLeagueId) {
       return NextResponse.json(
-        { error: 'League ID is required' },
+        { error: 'League ID or code is required' },
         { status: 400 }
       )
     }
@@ -33,7 +47,7 @@ export async function POST(
       )
     }
 
-    const result = scoreWeek({ leagueId, weekNo })
+    const result = await scoreWeek({ leagueId: finalLeagueId, weekNo })
 
     if ('error' in result) {
       return NextResponse.json(

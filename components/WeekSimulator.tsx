@@ -21,6 +21,12 @@ export function WeekSimulator({ leagueCode, currentWeek, onRefresh }: WeekSimula
     try {
       const response = await fetch(`/api/admin/weeks/${currentWeek}/${action}`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          leagueCode,
+          force: action === 'reveal',
+          reason: 'Admin simulation'
+        })
       })
       
       if (response.ok) {
