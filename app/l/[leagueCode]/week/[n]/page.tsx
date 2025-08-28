@@ -357,12 +357,16 @@ export default function WeekPage({ params }: { params: { leagueCode: string; n: 
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="text-center">
-                        <TeamLogo abbr={game.away_team.abbr} className="w-8 h-8 mx-auto mb-1" />
+                        <div className="mx-auto mb-1">
+                          <TeamLogo abbr={game.away_team.abbr} size={32} />
+                        </div>
                         <div className="text-xs font-medium">{game.away_team.abbr}</div>
                       </div>
                       <div className="text-charcoal-400">@</div>
                       <div className="text-center">
-                        <TeamLogo abbr={game.home_team.abbr} className="w-8 h-8 mx-auto mb-1" />
+                        <div className="mx-auto mb-1">
+                          <TeamLogo abbr={game.home_team.abbr} size={32} />
+                        </div>
                         <div className="text-xs font-medium">{game.home_team.abbr}</div>
                       </div>
                     </div>
