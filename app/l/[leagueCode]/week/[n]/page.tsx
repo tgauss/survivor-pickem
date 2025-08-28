@@ -10,7 +10,8 @@ import { Modal } from '@/components/Modal'
 import { GameCard } from '@/components/GameCard'
 import { Countdown } from '@/components/Countdown'
 import { PickBadge } from '@/components/brand/PickBadge'
-import { ArrowLeft, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
+import { TeamLogo } from '@/components/brand/TeamLogo'
+import { ArrowLeft, CheckCircle, Clock, AlertTriangle, XCircle } from 'lucide-react'
 import { formatKickoffTime } from '@/lib/time'
 import type { Game, WeekState } from '@/lib/data/types'
 import { USE_SUPABASE } from '@/lib/config'
@@ -344,6 +345,68 @@ export default function WeekPage({ params }: { params: { leagueCode: string; n: 
               </Card>
             )}
           </>
+        )}
+
+        {/* Past Week Results */}
+        {data.games.some(g => g.status === 'final') && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-4">Week {weekNo} Results</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {data.games.map((game) => (
+                <Card key={game.id} className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-center">
+                        <TeamLogo abbr={game.away_team.abbr} className="w-8 h-8 mx-auto mb-1" />
+                        <div className="text-xs font-medium">{game.away_team.abbr}</div>
+                      </div>
+                      <div className="text-charcoal-400">@</div>
+                      <div className="text-center">
+                        <TeamLogo abbr={game.home_team.abbr} className="w-8 h-8 mx-auto mb-1" />
+                        <div className="text-xs font-medium">{game.home_team.abbr}</div>
+                      </div>
+                    </div>
+                    
+                    {game.status === 'final' && game.home_score !== undefined && game.away_score !== undefined && (
+                      <div className="text-center">
+                        <div className="font-semibold">
+                          {game.away_score} - {game.home_score}
+                        </div>
+                        <div className="text-xs text-charcoal-400">Final</div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Show user's pick result for this game if they picked a team in this game */}
+                  {data.userPick?.team_abbr && 
+                   (game.home_team.abbr === data.userPick.team_abbr || game.away_team.abbr === data.userPick.team_abbr) && (
+                    <div className="border-t border-charcoal-700 pt-3 mt-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <PickBadge abbr={data.userPick.team_abbr} label="YOUR PICK" />
+                        </div>
+                        {game.status === 'final' && game.winner_team && (
+                          <div className="flex items-center gap-1">
+                            {game.winner_team.abbr === data.userPick.team_abbr ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                <span className="text-green-500 font-medium">Won</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-4 h-4 text-red-500" />
+                                <span className="text-red-500 font-medium">Lost</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
         )}
 
         <Modal

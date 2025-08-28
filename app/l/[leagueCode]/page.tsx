@@ -12,7 +12,9 @@ import { PickBadge } from '@/components/brand/PickBadge'
 import { TeamStack } from '@/components/brand/TeamStack'
 import { TeamLogo } from '@/components/brand/TeamLogo'
 import { TeamBrand } from '@/components/brand/TeamBrand'
-import { DollarSign, Skull, CheckCircle, XCircle, Clock, LogIn, LogOut, Settings, ChevronDown, ChevronUp, Users, MessageCircle, History, User2, Loader2 } from 'lucide-react'
+import { DollarSign, Skull, CheckCircle, XCircle, Clock, LogIn, LogOut, Settings, ChevronDown, ChevronUp, Users, MessageCircle, History, User2, Loader2, Calendar, Trophy } from 'lucide-react'
+import { WeekNavigation } from '@/components/WeekNavigation'
+import { WeekSimulator } from '@/components/WeekSimulator'
 import Link from 'next/link'
 import type { Entry, NotSubmittedEntry } from '@/lib/data/types'
 import { USE_SUPABASE } from '@/lib/config'
@@ -316,6 +318,15 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
         </div>
       </header>
 
+      {/* Week Navigation */}
+      {data && (
+        <WeekNavigation 
+          currentWeek={data.weekNo} 
+          totalWeeks={18}
+          leagueCode={params.leagueCode}
+        />
+      )}
+
       {/* Not Submitted Panel */}
       {showNotSubmitted && notSubmitted.length > 0 && (
         <div className="bg-yellow-500/10 border-b border-yellow-500/20">
@@ -350,6 +361,16 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
       )}
 
       <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Week Simulator - Only for admins */}
+        {session && data && (
+          <div className="mb-6">
+            <WeekSimulator 
+              leagueCode={params.leagueCode} 
+              currentWeek={data.weekNo}
+              onRefresh={loadData}
+            />
+          </div>
+        )}
         {/* Pick Distribution */}
         {data.distribution && !data.concealed && (
           <Card className="mb-6 p-4">

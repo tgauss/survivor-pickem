@@ -1273,6 +1273,31 @@ export async function syncResultsFromSportsDataIO(
   return { finalsCount, updatedCount, scoringTriggered, allOutSurvive }
 }
 
+// Pot calculation
+export async function getPot(leagueId: string): Promise<{ 
+  total: number
+  paid_count: number 
+  unpaid_count: number 
+}> {
+  const client = getClient()
+  
+  // Get all entries for the league
+  const { data: entries } = await client
+    .from('entries')
+    .select('paid')
+    .eq('league_id', leagueId)
+  
+  if (!entries) {
+    return { total: 0, paid_count: 0, unpaid_count: 0 }
+  }
+  
+  const paid_count = entries.filter(e => e.paid).length
+  const unpaid_count = entries.filter(e => !e.paid).length
+  const total = paid_count * 25 // $25 per entry
+  
+  return { total, paid_count, unpaid_count }
+}
+
 // League resolver
 export async function getLeagueByCode(leagueCode: string): Promise<{ id: string; name: string; season_year: number; league_code: string } | null> {
   const client = getClient()

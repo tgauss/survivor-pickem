@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { getLeagueByCode } from '@/lib/league'
+import { getLeagueByCode } from '@/lib/data'
 
 export interface LeagueContext {
   leagueId: string

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { savePick } from '@/lib/data'
-import { readSessionCookie } from '@/lib/auth/sessions'
+import { readUserSessionCookie } from '@/lib/auth/sessions'
 import { resolveLeagueFromBody } from '../_lib/league'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await readSessionCookie()
-    if (!session) {
+    const sessionData = await readUserSessionCookie()
+    if (!sessionData) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -33,8 +33,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Find user's entry in this league
+    const { data: entries } = await import('@/lib/supabase/server').then(m => m.createServerClient())
+      .then(client => client
+        .from('entries')
+        .select('id')
+        .eq('user_id', sessionData.user.id)
+        .eq('league_id', leagueContext.leagueId)
+        .single()
+      )
+
+    if (!entries) {
+      return NextResponse.json(
+        { error: 'You are not a member of this league' },
+        { status: 403 }
+      )
+    }
+
     const result = await savePick({
-      entryId: session.entry.id,
+      entryId: entries.id,
       leagueId: leagueContext.leagueId,
       weekNo,
       teamAbbr,
