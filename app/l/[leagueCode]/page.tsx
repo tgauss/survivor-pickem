@@ -93,7 +93,9 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
       // Check session
       let sessionData = null
       try {
-        const sessionRes = await fetch('/api/me/session')
+        const sessionRes = await fetch('/api/me/session', {
+          credentials: 'same-origin'
+        })
         if (sessionRes.ok) {
           sessionData = await sessionRes.json()
           setSession(sessionData)

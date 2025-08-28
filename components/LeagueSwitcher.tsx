@@ -34,7 +34,9 @@ export function LeagueSwitcher({ currentLeagueCode }: LeagueSwitcherProps) {
 
   const loadLeagues = async () => {
     try {
-      const response = await fetch('/api/leagues')
+      const response = await fetch('/api/leagues', {
+        credentials: 'same-origin'
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch leagues')
       }

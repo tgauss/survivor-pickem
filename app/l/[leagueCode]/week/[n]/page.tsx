@@ -79,13 +79,17 @@ export default function WeekPage({ params }: { params: { leagueCode: string; n: 
       let userPick = null
       
       try {
-        const usedTeamsResponse = await fetch(`/api/me/used-teams?leagueCode=${leagueCode}`)
+        const usedTeamsResponse = await fetch(`/api/me/used-teams?leagueCode=${leagueCode}`, {
+          credentials: 'same-origin'
+        })
         if (usedTeamsResponse.ok) {
           const usedTeamsData = await usedTeamsResponse.json()
           usedTeams = usedTeamsData.usedTeams
           
           // Get user's pick for this week
-          const pickResponse = await fetch(`/api/me/pick?leagueCode=${leagueCode}&weekNo=${weekNo}`)
+          const pickResponse = await fetch(`/api/me/pick?leagueCode=${leagueCode}&weekNo=${weekNo}`, {
+            credentials: 'same-origin'
+          })
           if (pickResponse.ok) {
             const pickData = await pickResponse.json()
             userPick = pickData.pick
@@ -158,6 +162,7 @@ export default function WeekPage({ params }: { params: { leagueCode: string; n: 
       const response = await fetch('/api/picks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           leagueCode: params.leagueCode,
           weekNo: data!.weekNo,
