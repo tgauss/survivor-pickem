@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-export async function POST() {
+export async function GET() {
   // Create a test response
   const response = NextResponse.json({
     test: 'cookie-setting',
