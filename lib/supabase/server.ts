@@ -2,12 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 import { SUPABASE } from '../config'
 
 export function createServerClient() {
-  if (!SUPABASE.url || !SUPABASE.anonKey) {
+  if (!SUPABASE.url || !SUPABASE.serviceRoleKey) {
     throw new Error('Supabase configuration missing')
   }
 
-  // Temporarily use anon key for development - in production this should be service role key
-  return createClient(SUPABASE.url, SUPABASE.anonKey, {
+  // Use service role key for server-side operations requiring elevated permissions
+  return createClient(SUPABASE.url, SUPABASE.serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
