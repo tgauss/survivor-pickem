@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Trophy } from 'lucide-react'
-import { listLeagues } from '@/lib/data'
+// Remove server import - we'll use API instead
 import type { League } from '@/lib/data/types'
 
 interface LeagueSwitcherProps {
@@ -34,7 +34,12 @@ export function LeagueSwitcher({ currentLeagueCode }: LeagueSwitcherProps) {
 
   const loadLeagues = async () => {
     try {
-      const data = await listLeagues()
+      const response = await fetch('/api/leagues')
+      if (!response.ok) {
+        throw new Error('Failed to fetch leagues')
+      }
+      
+      const { leagues: data } = await response.json()
       if (data && Array.isArray(data)) {
         const typedData = data as League[]
         setLeagues(typedData)
