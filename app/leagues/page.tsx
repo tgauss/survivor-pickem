@@ -18,6 +18,25 @@ export default function LeaguePickerPage() {
 
   const loadLeagues = async () => {
     try {
+      // First try to get user's leagues if logged in
+      const sessionResponse = await fetch('/api/me/session')
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json()
+        if (sessionData.user) {
+          // Get leagues the user is part of
+          const userLeaguesResponse = await fetch('/api/user/leagues')
+          if (userLeaguesResponse.ok) {
+            const userLeagues = await userLeaguesResponse.json()
+            if (userLeagues.leagues && userLeagues.leagues.length > 0) {
+              setLeagues(userLeagues.leagues)
+              setLoading(false)
+              return
+            }
+          }
+        }
+      }
+      
+      // Fallback to listing all leagues
       const data = await listLeagues()
       // Type guard to ensure we have the correct League type
       if (data && Array.isArray(data)) {

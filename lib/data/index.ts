@@ -14,7 +14,10 @@ export type {
 
 // Lazy import to enable treeshaking
 async function getAdapter() {
-  if (USE_SUPABASE) {
+  // Always use Supabase in production or when explicitly configured
+  const isProduction = process.env.NODE_ENV === 'production'
+  
+  if (USE_SUPABASE || isProduction) {
     return await import('./adapters/supabase')
   } else {
     return await import('./adapters/local')
