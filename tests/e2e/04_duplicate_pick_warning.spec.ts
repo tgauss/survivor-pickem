@@ -22,24 +22,24 @@ test.describe('Duplicate Pick Warning', () => {
 
     // Create user and make Week 1 pick
     await page.goto(`/l/${leagueCode}/admin`)
-    await page.getByTestId('admin-generate-invite').click()
+    await page.locator('[data-cy="admin-generate-invite"]').click()
     
     await page.waitForSelector('code')
     const inviteElement = await page.locator('code').first()
     const inviteToken = await inviteElement.textContent() || ''
 
     await page.goto(`/l/${leagueCode}/claim/${inviteToken}`)
-    await page.getByTestId('claim-username').fill('testuser')
-    await page.getByTestId('claim-display-name').fill('Test User')
-    await page.getByTestId('claim-pin').fill('1234')
+    await page.locator('[data-cy="claim-username"]').fill('testuser')
+    await page.locator('[data-cy="claim-display-name"]').fill('Test User')
+    await page.locator('[data-cy="claim-pin"]').fill('1234')
     await page.getByRole('button', { name: 'Join League' }).click()
 
     // Make Week 1 pick on KC
     await page.goto(`/l/${leagueCode}/week/1`)
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Handle any initial duplicate warning
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     if (await duplicateModal.isVisible()) {
       await page.getByRole('button', { name: 'Confirm' }).click()
     }
@@ -52,10 +52,10 @@ test.describe('Duplicate Pick Warning', () => {
     await page.goto(`/l/${leagueCode}/week/2`)
     
     // Try to pick KC again (already used in Week 1)
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Should see duplicate warning modal
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     await expect(duplicateModal).toBeVisible()
     
     // Modal should explain the duplicate pick
@@ -71,10 +71,10 @@ test.describe('Duplicate Pick Warning', () => {
     await page.goto(`/l/${leagueCode}/week/2`)
     
     // Try to pick KC again
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Cancel the duplicate pick
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     await expect(duplicateModal).toBeVisible()
     await page.getByRole('button', { name: 'Cancel' }).click()
     
@@ -86,7 +86,7 @@ test.describe('Duplicate Pick Warning', () => {
     await expect(page.getByText('Pick saved. Locked for Week 2.')).not.toBeVisible()
     
     // Should still be able to pick a different team
-    await page.getByTestId('pick-SF').click()
+    await page.locator('[data-cy="pick-SF"]').click()
     await expect(page.getByText('Pick saved. Locked for Week 2.')).toBeVisible()
   })
 
@@ -94,10 +94,10 @@ test.describe('Duplicate Pick Warning', () => {
     await page.goto(`/l/${leagueCode}/week/2`)
     
     // Try to pick KC again
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Confirm the duplicate pick
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     await expect(duplicateModal).toBeVisible()
     await page.getByRole('button', { name: 'Confirm' }).click()
     
@@ -106,7 +106,7 @@ test.describe('Duplicate Pick Warning', () => {
     await expect(page.getByText('Pick saved. Locked for Week 2.')).toBeVisible()
     
     // Should show pick badge for KC
-    const pickBadge = page.getByTestId('pick-badge-KC')
+    const pickBadge = page.locator('[data-cy="pick-badge-KC"]')
     if (await pickBadge.isVisible()) {
       await expect(pickBadge).toContainText('KC')
       await expect(pickBadge).toContainText('YOU')
@@ -117,10 +117,10 @@ test.describe('Duplicate Pick Warning', () => {
     await page.goto(`/l/${leagueCode}/week/2`)
     
     // Pick SF (different from Week 1's KC)
-    await page.getByTestId('pick-SF').click()
+    await page.locator('[data-cy="pick-SF"]').click()
     
     // Should NOT see duplicate warning
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     await expect(duplicateModal).not.toBeVisible()
     
     // Should go straight to pick confirmation
@@ -131,7 +131,7 @@ test.describe('Duplicate Pick Warning', () => {
     await page.goto(`/l/${leagueCode}/week/2`)
     
     // KC button should show as "used" with different styling
-    const kcButton = page.getByTestId('pick-KC')
+    const kcButton = page.locator('[data-cy="pick-KC"]')
     await expect(kcButton).toBeVisible()
     await expect(kcButton).toContainText('USED')
     
@@ -140,7 +140,7 @@ test.describe('Duplicate Pick Warning', () => {
     await expect(kcButton).toHaveClass(/bg-charcoal-700/)
     
     // SF should not show as used
-    const sfButton = page.getByTestId('pick-SF')
+    const sfButton = page.locator('[data-cy="pick-SF"]')
     await expect(sfButton).not.toContainText('USED')
   })
 })

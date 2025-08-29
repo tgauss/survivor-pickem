@@ -31,6 +31,7 @@ export default function AdminPage() {
   })
 
   useEffect(() => {
+    console.log('Admin page: Initial useEffect, calling fetchLeagues')
     fetchLeagues()
   }, [])
 
@@ -42,16 +43,25 @@ export default function AdminPage() {
   }, [selectedLeague, currentWeek])
 
   const fetchLeagues = async () => {
-    const response = await fetch('/api/admin/leagues')
+    console.log('fetchLeagues: Starting...')
+    const response = await fetch('/api/admin/leagues', {
+      credentials: 'same-origin'
+    })
+    console.log('fetchLeagues: Response status:', response.status)
     const data = await response.json()
+    console.log('fetchLeagues: Data received:', data)
     setLeagues(data.leagues)
+    console.log('fetchLeagues: Leagues set, length:', data.leagues.length)
     if (data.leagues.length > 0 && !selectedLeague) {
       setSelectedLeague(data.leagues[0])
+      console.log('fetchLeagues: Selected league set:', data.leagues[0])
     }
   }
 
   const fetchInvites = async (leagueId: string) => {
-    const response = await fetch(`/api/admin/invites?leagueId=${leagueId}`)
+    const response = await fetch(`/api/admin/invites?leagueId=${leagueId}`, {
+      credentials: 'same-origin'
+    })
     const data = await response.json()
     setInvites(data.invites)
   }
@@ -59,9 +69,9 @@ export default function AdminPage() {
   const fetchWeekData = async (leagueId: string, weekNo: number) => {
     try {
       const [gamesRes, stateRes, notSubmittedRes] = await Promise.all([
-        fetch(`/api/weeks/${weekNo}/games?leagueId=${leagueId}`),
-        fetch(`/api/weeks/${weekNo}/state?leagueId=${leagueId}`),
-        fetch(`/api/weeks/${weekNo}/not-submitted?leagueId=${leagueId}`),
+        fetch(`/api/weeks/${weekNo}/games?leagueId=${leagueId}`, { credentials: 'same-origin' }),
+        fetch(`/api/weeks/${weekNo}/state?leagueId=${leagueId}`, { credentials: 'same-origin' }),
+        fetch(`/api/weeks/${weekNo}/not-submitted?leagueId=${leagueId}`, { credentials: 'same-origin' }),
       ])
 
       const [gamesData, stateData, notSubmittedData] = await Promise.all([
@@ -82,6 +92,7 @@ export default function AdminPage() {
     const response = await fetch('/api/admin/leagues', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({
         name: formData.name,
         season_year: formData.season_year,
@@ -99,14 +110,22 @@ export default function AdminPage() {
   const generateInvite = async () => {
     if (!selectedLeague) return
     
+    console.log('generateInvite: selectedLeague.id:', selectedLeague.id)
+    
     const response = await fetch('/api/admin/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ leagueId: selectedLeague.id }),
     })
     
+    console.log('generateInvite: response.status:', response.status)
     if (response.ok) {
+      console.log('generateInvite: refreshing invites list')
       await fetchInvites(selectedLeague.id)
+    } else {
+      const error = await response.json()
+      console.log('generateInvite: error:', error)
     }
   }
 
@@ -118,6 +137,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/games/${gameId}/winner`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           leagueId: selectedLeague.id,
           weekNo: currentWeek,
@@ -143,6 +163,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/weeks/${currentWeek}/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ leagueId: selectedLeague.id }),
       })
 
@@ -171,6 +192,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/weeks/${currentWeek}/reveal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           leagueId: selectedLeague.id,
           force,
@@ -214,6 +236,7 @@ export default function AdminPage() {
     try {
       const response = await fetch('/api/admin/teams/seed', {
         method: 'POST',
+        credentials: 'same-origin',
       })
 
       const result = await response.json()
@@ -236,6 +259,7 @@ export default function AdminPage() {
       const response = await fetch(`/api/admin/sportsdata/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: body ? JSON.stringify(body) : undefined,
       })
 
@@ -261,7 +285,10 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-        {leagues.length === 0 && !showCreateForm ? (
+        {(() => {
+          console.log('Render decision: leagues.length=', leagues.length, 'showCreateForm=', showCreateForm);
+          return leagues.length === 0 && !showCreateForm;
+        })() ? (
           <Card className="p-8 text-center">
             <h2 className="text-xl font-semibold mb-4">No Leagues Found</h2>
             <p className="text-charcoal-400 mb-6">Create your first league to get started</p>
@@ -606,7 +633,10 @@ export default function AdminPage() {
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <code className="text-xs font-mono text-blue-400 truncate">
+                                  <code 
+                                    className="text-xs font-mono text-blue-400 truncate"
+                                    data-cy={`invite-token-${invite.token}`}
+                                  >
                                     {invite.token}
                                   </code>
                                   {invite.claimed_by_user_id ? (

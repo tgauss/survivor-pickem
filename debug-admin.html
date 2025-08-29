@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Admin API</title>
+</head>
+<body>
+    <h1>Debug Admin API</h1>
+    <button onclick="testLeagues()">Test /api/admin/leagues</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLeagues() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/admin/leagues', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                resultDiv.innerHTML = '<h2>Success!</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultDiv.innerHTML = '<h2>Error!</h2><pre>' + error.toString() + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

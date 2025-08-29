@@ -20,7 +20,7 @@ export async function getLeagueByCode(leagueCode: string): Promise<LeagueInfo | 
   const leagues = await listLeagues()
   
   // Generate league codes if not present (e.g., "2024-bears" from name and year)
-  const league = leagues.find(l => {
+  const league = leagues.find((l: any) => {
     const code = l.league_code || `${l.season_year}-${l.name.toLowerCase().replace(/\s+/g, '-')}`
     return code === leagueCode
   })
@@ -58,7 +58,7 @@ export async function requireLeague(params: { leagueCode?: string }): Promise<Le
 
 export async function getAllLeagueCodes(): Promise<string[]> {
   const leagues = await listLeagues()
-  return leagues.map(l => 
+  return leagues.map((l: any) => 
     l.league_code || `${l.season_year}-${l.name.toLowerCase().replace(/\s+/g, '-')}`
   )
 }

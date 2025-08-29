@@ -245,7 +245,7 @@ export default function LeaderboardPage({ params }: { params: { leagueCode: stri
           
           <div className="flex flex-wrap items-center gap-3">
             <Chip variant="primary" icon={<DollarSign className="w-4 h-4" />}>
-              Pot: ${pot.toLocaleString()}
+              Pot: ${(pot || 0).toLocaleString()}
             </Chip>
             <Chip variant="secondary">
               Week {weekNo}

@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const invites = getLeagueInvites(leagueId)
+  const invites = await getLeagueInvites(leagueId)
   return NextResponse.json({ invites })
 }
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const invite = createInvite(leagueId)
+    const invite = await createInvite(leagueId)
     if (!invite) {
       return NextResponse.json(
         { error: 'League not found' },

@@ -14,6 +14,12 @@ export async function POST() {
     // Clear fixed time
     setFixedNow(null)
     
+    // Clear the cached adapter to force fresh instance
+    const dataModule = await import('@/lib/data')
+    if ((dataModule as any).clearCachedAdapter) {
+      (dataModule as any).clearCachedAdapter()
+    }
+    
     // Reset local adapter with deterministic seed data
     const { seedTestData } = await import('@/lib/data/adapters/local')
     const leagueCode = await seedTestData()

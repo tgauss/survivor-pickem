@@ -26,21 +26,38 @@ test.describe('Invite → Claim → Login → Pick Flow', () => {
     // 1. Admin generates invite
     await page.goto(`/l/${leagueCode}/admin`)
     
-    await page.getByTestId('admin-generate-invite').click()
+    // Wait for page to load and show either "No Leagues Found" or league interface
+    await page.waitForSelector('h1:has-text("Admin Dashboard")', { timeout: 10000 })
+    
+    // Wait for React component to load and API calls to complete
+    // Either we'll see "No Leagues Found" or the generate invite button
+    try {
+      await page.waitForSelector('[data-cy="admin-generate-invite"]', { timeout: 15000 })
+    } catch (error) {
+      // If generate button not found, check if we need to create a league first
+      const noLeaguesText = page.getByText('No Leagues Found')
+      if (await noLeaguesText.isVisible()) {
+        throw new Error('Admin page shows "No Leagues Found" - leagues not loaded from API')
+      }
+      throw error
+    }
+    
+    await page.locator('[data-cy="admin-generate-invite"]').click()
     
     // Wait for invite to be generated and get the token
     await page.waitForSelector('[data-cy*="invite-token"]', { timeout: 5000 })
-    const inviteElement = await page.locator('code').first()
+    const inviteElement = await page.locator('[data-cy*="invite-token"]').first()
     inviteToken = await inviteElement.textContent() || ''
     expect(inviteToken).toBeTruthy()
+    console.log('E2E: Extracted invite token:', inviteToken)
 
     // 2. Visit claim page
     await page.goto(`/l/${leagueCode}/claim/${inviteToken}`)
     
     // 3. Fill claim form
-    await page.getByTestId('claim-username').fill('testuser')
-    await page.getByTestId('claim-display-name').fill('Test User')
-    await page.getByTestId('claim-pin').fill('1234')
+    await page.locator('[data-cy="claim-username"]').fill('testuser')
+    await page.locator('[data-cy="claim-display-name"]').fill('Test User')
+    await page.locator('[data-cy="claim-pin"]').fill('1234')
     
     await page.getByRole('button', { name: 'Join League' }).click()
 
@@ -53,10 +70,10 @@ test.describe('Invite → Claim → Login → Pick Flow', () => {
     await expect(page).toHaveURL(new RegExp(`/l/${leagueCode}/week/1$`))
 
     // 6. Select a team (KC from our test data)
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Confirm pick in modal if duplicate warning appears
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     if (await duplicateModal.isVisible()) {
       await page.getByRole('button', { name: 'Confirm' }).click()
     }
@@ -65,7 +82,7 @@ test.describe('Invite → Claim → Login → Pick Flow', () => {
     await expect(page.getByText('Pick saved. Locked for Week 1.')).toBeVisible()
     
     // 8. Should see PickBadge when revealed
-    const pickBadge = page.getByTestId('pick-badge-KC')
+    const pickBadge = page.locator('[data-cy="pick-badge-KC"]')
     if (await pickBadge.isVisible()) {
       await expect(pickBadge).toContainText('KC')
       await expect(pickBadge).toContainText('YOU')
@@ -73,15 +90,15 @@ test.describe('Invite → Claim → Login → Pick Flow', () => {
 
     // 9. Return to leaderboard and verify entry
     await page.goto(`/l/${leagueCode}`)
-    await expect(page.getByTestId('lb-row-test-user')).toBeVisible()
+    await expect(page.locator('[data-cy="lb-row-test-user"]')).toBeVisible()
     await expect(page.getByText('Submitted')).toBeVisible()
   })
 
   test('should show login link when not logged in', async ({ page }) => {
     await page.goto(`/l/${leagueCode}`)
     
-    await expect(page.getByTestId('nav-login')).toBeVisible()
-    await expect(page.getByTestId('nav-login')).toContainText('Login')
+    await expect(page.locator('[data-cy="nav-login"]')).toBeVisible()
+    await expect(page.locator('[data-cy="nav-login"]')).toContainText('Login')
   })
 
   test('should handle claim form validation', async ({ page }) => {

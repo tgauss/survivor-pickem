@@ -10,3 +10,7 @@ SESSION_COOKIE_NAME=survivor_session
 SESSION_SECRET=production_secret_change_me_in_real_deployment
 SUPER_ADMIN_USERNAME=tgauss
 SUPER_ADMIN_PIN=3112
+
+
+
+

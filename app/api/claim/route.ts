@@ -5,9 +5,9 @@ import { createSessionCookie } from '@/lib/auth/sessions'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { token, username, display_name, real_name, email, phone, pin } = body
+    const { token, username, displayName, pin } = body
 
-    if (!token || !username || !display_name || !real_name || !email || !phone || !pin) {
+    if (!token || !username || !displayName || !pin) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     const result = await claimInvite(token, {
       username,
-      displayName: display_name,
+      displayName,
       pin,
     })
 

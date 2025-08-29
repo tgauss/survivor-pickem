@@ -1,11 +1,20 @@
 // @ts-nocheck
 import crypto from 'crypto'
 import { now } from '@/lib/timectl'
+
+// Helper to safely use Node.js modules in server-side only
+function safeRequire(module: string) {
+  if (typeof window === 'undefined') {
+    return require(module)
+  }
+  return null
+}
 import type { 
   League, 
   Entry, 
   Invite, 
   Session, 
+  User,
   LeaderboardData, 
   ClaimPayload,
   LoginAttempt,
@@ -44,6 +53,7 @@ const teams: Team[] = [
 ]
 
 let seeded = false
+let testDataSeeded: boolean = !!process.env.__TEST_DATA_SEEDED
 
 export function resetState(): void {
   seeded = false
@@ -57,6 +67,28 @@ export function resetState(): void {
   picks.length = 0
   adminViewEvents.length = 0
   messages.length = 0
+  
+  // Clear session and entry cache files (Node.js only)
+  const fs = safeRequire('fs')
+  const path = safeRequire('path')
+  if (fs && path) {
+    try {
+    
+    const sessionCacheFile = path.join(process.cwd(), '.next', 'test-sessions-cache.json')
+    if (fs.existsSync(sessionCacheFile)) {
+      fs.unlinkSync(sessionCacheFile)
+      console.log('resetState: Cleared session cache file')
+    }
+    
+    const entryCacheFile = path.join(process.cwd(), '.next', 'test-entries-cache.json')
+    if (fs.existsSync(entryCacheFile)) {
+      fs.unlinkSync(entryCacheFile)
+      console.log('resetState: Cleared entry cache file')
+    }
+    } catch (err) {
+      console.error('resetState: Failed to clear cache files:', err)
+    }
+  }
 }
 
 function hashPin(pin: string): string {
@@ -195,6 +227,38 @@ export function seedWeekZero(): void {
 }
 
 export async function listLeagues() {
+  // Check if test data has been seeded globally but we don't have it in this module instance
+  const testDataSeeded = process.env.__TEST_DATA_SEEDED
+  if (testDataSeeded && leagues.length === 0) {
+    console.log('listLeagues: Found test data seeded globally but empty leagues, auto-seeding...')
+    // Re-seed this module instance
+    const { getTeamsArray } = await import('@/lib/teams')
+    const staticTeams = getTeamsArray()
+    
+    teams.length = 0
+    staticTeams.forEach(team => {
+      teams.push({
+        id: team.teamId.toString(),
+        abbr: team.abbr,
+        city: team.city,
+        name: team.name,
+        logo_url: team.logoUrl,
+      })
+    })
+
+    const testLeague = {
+      id: 'test-league-1',
+      name: 'Test Survivor League',
+      season_year: 2024,
+      league_code: '2024-test-survivor',
+      buy_in_cents: 5000,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    }
+    leagues.push(testLeague)
+    console.log('listLeagues: Auto-seeded league in this module instance:', testLeague.league_code)
+  }
+  
   return leagues.map(l => ({
     id: l.id,
     league_code: l.league_code,
@@ -221,7 +285,30 @@ export function createLeague(params: {
 }
 
 export function createInvite(leagueId: string): Invite | null {
-  const league = leagues.find(l => l.id === leagueId)
+  console.log('createInvite: Starting, leagueId:', leagueId, 'leagues.length:', leagues.length)
+  
+  const testDataSeeded = process.env.__TEST_DATA_SEEDED
+  let league = leagues.find(l => l.id === leagueId)
+  
+  // Auto-seed if we have test data but the specific league we need is missing
+  if (testDataSeeded && !league && leagueId === 'test-league-1') {
+    console.log('createInvite: Test league missing, auto-seeding in this module instance...')
+    const testLeague = {
+      id: 'test-league-1',
+      name: 'Test Survivor League',
+      season_year: 2024,
+      league_code: '2024-test-survivor',
+      buy_in_cents: 5000,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    }
+    leagues.push(testLeague)
+    league = testLeague
+    console.log('createInvite: Auto-seeded league:', testLeague.league_code)
+  }
+  
+  console.log('createInvite: Looking for league with id:', leagueId, 'found:', !!league)
+  console.log('createInvite: Available league IDs:', leagues.map(l => l.id))
   if (!league) return null
 
   const invite: Invite = {
@@ -233,11 +320,79 @@ export function createInvite(leagueId: string): Invite | null {
     claimed_at: null,
   }
   invites.push(invite)
+  
+  // Cache invites globally to share across module instances using file system
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    const cacheFile = path.join(process.cwd(), '.next', 'test-invites-cache.json')
+    
+    // Ensure .next directory exists
+    const cacheDir = path.dirname(cacheFile)
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true })
+    }
+    
+    // Read existing cached invites
+    let existingInvites = []
+    if (fs.existsSync(cacheFile)) {
+      const cacheData = fs.readFileSync(cacheFile, 'utf8')
+      existingInvites = JSON.parse(cacheData)
+    }
+    
+    // Add new invite to cache
+    existingInvites.push(invite)
+    fs.writeFileSync(cacheFile, JSON.stringify(existingInvites, null, 2))
+    console.log('createInvite: Cached invite to file, token:', invite.token)
+  } catch (err) {
+    console.error('createInvite: Failed to cache invite:', err)
+  }
+  
   return invite
 }
 
 export function getInvite(token: string): Invite | null {
-  return invites.find(i => i.token === token && !i.claimed_by_entry) || null
+  console.log('getInvite: Starting, token:', token, 'invites.length:', invites.length)
+  console.log('getInvite: testDataSeeded:', !!process.env.__TEST_DATA_SEEDED, 'cached invites:', !!process.env.__TEST_INVITES_JSON)
+  
+  // Always check global invite cache if invite not found locally and test data was seeded
+  const testDataSeeded = process.env.__TEST_DATA_SEEDED
+  let invite = invites.find(i => i.token === token && !i.claimed_by_entry)
+  
+  if (!invite) {
+    console.log('getInvite: Invite not found locally, checking file cache...')
+    
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const cacheFile = path.join(process.cwd(), '.next', 'test-invites-cache.json')
+      
+      if (fs.existsSync(cacheFile)) {
+        const cacheData = fs.readFileSync(cacheFile, 'utf8')
+        const cachedInvites = JSON.parse(cacheData)
+        console.log('getInvite: Found cached invites in file, count:', cachedInvites.length)
+        
+        // Load all cached invites if we haven't already
+        const localTokens = invites.map(i => i.token)
+        const newInvites = cachedInvites.filter((i: any) => !localTokens.includes(i.token))
+        
+        if (newInvites.length > 0) {
+          invites.push(...newInvites)
+          console.log('getInvite: Added new invites from file to local cache, count:', newInvites.length)
+        }
+        
+        // Try finding the invite again
+        invite = invites.find(i => i.token === token && !i.claimed_by_entry)
+        console.log('getInvite: After loading file cache, found invite:', !!invite)
+      } else {
+        console.log('getInvite: No cache file found')
+      }
+    } catch (err) {
+      console.error('getInvite: Failed to read cache file:', err)
+    }
+  }
+  
+  return invite || null
 }
 
 export function claimInvite(token: string, payload: ClaimPayload): { entry: Entry; session: Session } | { error: string } {
@@ -274,6 +429,35 @@ export function claimInvite(token: string, payload: ClaimPayload): { entry: Entr
     created_at: new Date().toISOString(),
   }
   entries.push(entry)
+  
+  // Cache entry globally to share across module instances using file system (Node.js only)
+  const fs = safeRequire('fs')
+  const path = safeRequire('path')
+  if (fs && path) {
+    try {
+    const cacheFile = path.join(process.cwd(), '.next', 'test-entries-cache.json')
+    
+    // Ensure .next directory exists
+    const cacheDir = path.dirname(cacheFile)
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true })
+    }
+    
+    // Read existing cached entries
+    let existingEntries = []
+    if (fs.existsSync(cacheFile)) {
+      const cacheData = fs.readFileSync(cacheFile, 'utf8')
+      existingEntries = JSON.parse(cacheData)
+    }
+    
+    // Add new entry to cache
+    existingEntries.push(entry)
+    fs.writeFileSync(cacheFile, JSON.stringify(existingEntries, null, 2))
+    console.log('claimInvite: Cached entry to file, username:', entry.username)
+    } catch (err) {
+      console.error('claimInvite: Failed to cache entry:', err)
+    }
+  }
 
   invite.claimed_by_entry = entry.id
   invite.claimed_at = new Date().toISOString()
@@ -323,21 +507,223 @@ function createSession(entryId: string): Session {
     created_at: new Date().toISOString(),
   }
   sessions.push(session)
+  
+  // Cache session globally to share across module instances using file system
+  const fs = safeRequire('fs')
+  const path = safeRequire('path')
+  if (fs && path) {
+    try {
+    const cacheFile = path.join(process.cwd(), '.next', 'test-sessions-cache.json')
+    
+    // Ensure .next directory exists
+    const cacheDir = path.dirname(cacheFile)
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true })
+    }
+    
+    // Read existing cached sessions
+    let existingSessions = []
+    if (fs.existsSync(cacheFile)) {
+      const cacheData = fs.readFileSync(cacheFile, 'utf8')
+      existingSessions = JSON.parse(cacheData)
+    }
+    
+    // Add new session to cache
+    existingSessions.push(session)
+    fs.writeFileSync(cacheFile, JSON.stringify(existingSessions, null, 2))
+    console.log('createSession: Cached session to file, token:', session.session_token.substring(0, 8) + '...')
+    } catch (err) {
+      console.error('createSession: Failed to cache session:', err)
+    }
+  }
+  
   return session
 }
 
 export function getSession(sessionToken: string): { entry: Entry; session: Session } | null {
-  const session = sessions.find(s => 
+  let session = sessions.find(s => 
     s.session_token === sessionToken && 
     new Date(s.expires_at) > new Date()
   )
   
+  // If not found locally and test data is seeded, check file cache
+  if (!session && testDataSeeded) {
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const cacheFile = path.join(process.cwd(), '.next', 'test-sessions-cache.json')
+      
+      if (fs.existsSync(cacheFile)) {
+        const cacheData = fs.readFileSync(cacheFile, 'utf8')
+        const cachedSessions = JSON.parse(cacheData)
+        const validCachedSessions = cachedSessions.filter(s => new Date(s.expires_at) > new Date())
+        
+        // Add valid cached sessions to local cache
+        validCachedSessions.forEach(cachedSession => {
+          if (!sessions.find(s => s.session_token === cachedSession.session_token)) {
+            sessions.push(cachedSession)
+          }
+        })
+        
+        session = sessions.find(s => 
+          s.session_token === sessionToken && 
+          new Date(s.expires_at) > new Date()
+        )
+        
+        if (session) {
+          console.log('getSession: Found session in file cache, token:', session.session_token.substring(0, 8) + '...')
+        }
+      }
+    } catch (err) {
+      console.error('getSession: Failed to read session cache:', err)
+    }
+  }
+  
   if (!session) return null
   
-  const entry = entries.find(e => e.id === session.entry_id)
+  let entry = entries.find(e => e.id === session.entry_id)
+  
+  // If entry not found, check file cache first
+  if (!entry && testDataSeeded) {
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const cacheFile = path.join(process.cwd(), '.next', 'test-entries-cache.json')
+      
+      if (fs.existsSync(cacheFile)) {
+        const cacheData = fs.readFileSync(cacheFile, 'utf8')
+        const cachedEntries = JSON.parse(cacheData)
+        
+        // Add cached entries to local cache
+        cachedEntries.forEach(cachedEntry => {
+          if (!entries.find(e => e.id === cachedEntry.id)) {
+            entries.push(cachedEntry)
+          }
+        })
+        
+        entry = entries.find(e => e.id === session.entry_id)
+        
+        if (entry) {
+          console.log('getSession: Found entry in file cache:', entry.username)
+        }
+      }
+    } catch (err) {
+      console.error('getSession: Failed to read entry cache:', err)
+    }
+  }
+  
+  // If still not found, auto-seed test data as fallback
+  if (!entry && testDataSeeded) {
+    console.log('getSession: Entry still not found, auto-seeding test data...')
+    seedTestData()
+    entry = entries.find(e => e.id === session.entry_id)
+    if (entry) {
+      console.log('getSession: Found entry after auto-seeding:', entry.username)
+    }
+  }
+  
   if (!entry) return null
   
   return { entry, session }
+}
+
+export function getUserSession(sessionToken: string): { user: User; session: Session } | null {
+  let session = sessions.find(s => 
+    s.session_token === sessionToken && 
+    new Date(s.expires_at) > new Date()
+  )
+  
+  // If not found locally and test data is seeded, check file cache
+  if (!session && testDataSeeded) {
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const cacheFile = path.join(process.cwd(), '.next', 'test-sessions-cache.json')
+      
+      if (fs.existsSync(cacheFile)) {
+        const cacheData = fs.readFileSync(cacheFile, 'utf8')
+        const cachedSessions = JSON.parse(cacheData)
+        const validCachedSessions = cachedSessions.filter(s => new Date(s.expires_at) > new Date())
+        
+        // Add valid cached sessions to local cache
+        validCachedSessions.forEach(cachedSession => {
+          if (!sessions.find(s => s.session_token === cachedSession.session_token)) {
+            sessions.push(cachedSession)
+          }
+        })
+        
+        session = sessions.find(s => 
+          s.session_token === sessionToken && 
+          new Date(s.expires_at) > new Date()
+        )
+        
+        if (session) {
+          console.log('getUserSession: Found session in file cache, token:', session.session_token.substring(0, 8) + '...')
+        }
+      }
+    } catch (err) {
+      console.error('getUserSession: Failed to read session cache:', err)
+    }
+  }
+  
+  if (!session) return null
+  
+  let entry = entries.find(e => e.id === session.entry_id)
+  
+  // If entry not found, check file cache first
+  if (!entry && testDataSeeded) {
+    try {
+      const fs = require('fs')
+      const path = require('path')
+      const cacheFile = path.join(process.cwd(), '.next', 'test-entries-cache.json')
+      
+      if (fs.existsSync(cacheFile)) {
+        const cacheData = fs.readFileSync(cacheFile, 'utf8')
+        const cachedEntries = JSON.parse(cacheData)
+        
+        // Add cached entries to local cache
+        cachedEntries.forEach(cachedEntry => {
+          if (!entries.find(e => e.id === cachedEntry.id)) {
+            entries.push(cachedEntry)
+          }
+        })
+        
+        entry = entries.find(e => e.id === session.entry_id)
+        
+        if (entry) {
+          console.log('getUserSession: Found entry in file cache:', entry.username)
+        }
+      }
+    } catch (err) {
+      console.error('getUserSession: Failed to read entry cache:', err)
+    }
+  }
+  
+  // If still not found, auto-seed test data as fallback
+  if (!entry && testDataSeeded) {
+    console.log('getUserSession: Entry still not found, auto-seeding test data...')
+    seedTestData()
+    entry = entries.find(e => e.id === session.entry_id)
+    if (entry) {
+      console.log('getUserSession: Found entry after auto-seeding:', entry.username)
+    }
+  }
+  
+  if (!entry) return null
+  
+  // For the local adapter, we'll create a minimal User object from the entry data
+  const user: User = {
+    id: entry.user_id || entry.id, // Fallback to entry id if user_id not available
+    username: entry.username,
+    email: '', // Not used in local adapter
+    phone: '', // Not used in local adapter
+    real_name: entry.display_name,
+    role: 'user',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+  
+  return { user, session }
 }
 
 export function logout(sessionToken: string): boolean {
@@ -403,6 +789,23 @@ export function getAllLeagues(): League[] {
 }
 
 export function getLeagueInvites(leagueId: string, limit = 10): Invite[] {
+  // Auto-seed if we have reset but no leagues in this instance
+  const testDataSeeded = process.env.__TEST_DATA_SEEDED
+  if (testDataSeeded && leagues.length === 0) {
+    console.log('getLeagueInvites: Auto-seeding test data in this module instance...')
+    const testLeague = {
+      id: 'test-league-1',
+      name: 'Test Survivor League',
+      season_year: 2024,
+      league_code: '2024-test-survivor',
+      buy_in_cents: 5000,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    }
+    leagues.push(testLeague)
+    console.log('getLeagueInvites: Auto-seeded league:', testLeague.league_code)
+  }
+  
   return invites
     .filter(i => i.league_id === leagueId)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -919,7 +1322,25 @@ export async function seedTestData(): Promise<string> {
     throw new Error('Test-only function')
   }
 
-  // Clear all data
+  console.log('seedTestData: Starting test data seeding...')
+
+  // Clear all data and mark reset globally using env var
+  process.env.__TEST_DATA_SEEDED = Date.now().toString()
+  
+  // Clear file-based cache
+  try {
+    const fs = require('fs')
+    const path = require('path')
+    const cacheFile = path.join(process.cwd(), '.next', 'test-invites-cache.json')
+    if (fs.existsSync(cacheFile)) {
+      fs.unlinkSync(cacheFile)
+      console.log('seedTestData: Cleared invite cache file')
+    }
+  } catch (err) {
+    console.error('seedTestData: Failed to clear cache file:', err)
+  }
+  
+  seeded = false
   leagues.length = 0
   entries.length = 0
   invites.length = 0
@@ -954,6 +1375,8 @@ export async function seedTestData(): Promise<string> {
     updated_at: '2024-01-01T00:00:00Z'
   }
   leagues.push(testLeague)
+  
+  console.log('seedTestData: Completed. Created league:', testLeague.league_code, 'Total leagues:', leagues.length)
   
   return testLeague.league_code
 }

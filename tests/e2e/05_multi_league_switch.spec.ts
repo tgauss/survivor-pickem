@@ -66,16 +66,16 @@ test.describe('Multi-League Switching', () => {
   test('should maintain separate data between leagues', async ({ page }) => {
     // Create entry in first league
     await page.goto(`/l/${leagueCode1}/admin`)
-    await page.getByTestId('admin-generate-invite').click()
+    await page.locator('[data-cy="admin-generate-invite"]').click()
     
     await page.waitForSelector('code')
     const inviteElement = await page.locator('code').first()
     const inviteToken1 = await inviteElement.textContent() || ''
 
     await page.goto(`/l/${leagueCode1}/claim/${inviteToken1}`)
-    await page.getByTestId('claim-username').fill('league1user')
-    await page.getByTestId('claim-display-name').fill('League 1 User')
-    await page.getByTestId('claim-pin').fill('1234')
+    await page.locator('[data-cy="claim-username"]').fill('league1user')
+    await page.locator('[data-cy="claim-display-name"]').fill('League 1 User')
+    await page.locator('[data-cy="claim-pin"]').fill('1234')
     await page.getByRole('button', { name: 'Join League' }).click()
 
     // Verify user exists in first league

@@ -20,7 +20,7 @@ test.describe('Reveal and Score Week', () => {
 
     // Create a user with a pick
     await page.goto(`/l/${leagueCode}/admin`)
-    await page.getByTestId('admin-generate-invite').click()
+    await page.locator('[data-cy="admin-generate-invite"]').click()
     
     await page.waitForSelector('code')
     const inviteElement = await page.locator('code').first()
@@ -28,17 +28,17 @@ test.describe('Reveal and Score Week', () => {
 
     // Claim invite and make pick
     await page.goto(`/l/${leagueCode}/claim/${inviteToken}`)
-    await page.getByTestId('claim-username').fill('winner')
-    await page.getByTestId('claim-display-name').fill('Winner User')
-    await page.getByTestId('claim-pin').fill('1234')
+    await page.locator('[data-cy="claim-username"]').fill('winner')
+    await page.locator('[data-cy="claim-display-name"]').fill('Winner User')
+    await page.locator('[data-cy="claim-pin"]').fill('1234')
     await page.getByRole('button', { name: 'Join League' }).click()
 
     // Make a pick on KC
     await page.goto(`/l/${leagueCode}/week/1`)
-    await page.getByTestId('pick-KC').click()
+    await page.locator('[data-cy="pick-KC"]').click()
     
     // Handle duplicate warning if present
-    const duplicateModal = page.getByTestId('duplicate-warning')
+    const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
     if (await duplicateModal.isVisible()) {
       await page.getByRole('button', { name: 'Confirm' }).click()
     }
@@ -52,13 +52,13 @@ test.describe('Reveal and Score Week', () => {
     // For now, we'll use the Score Week button directly which should handle scoring
     
     // 2. Score the week
-    await page.getByTestId('admin-score-week').click()
+    await page.locator('[data-cy="admin-score-week"]').click()
     
     // Wait for scoring to complete
     await page.waitForTimeout(1000)
     
     // 3. Reveal the week
-    await page.getByTestId('admin-reveal-now').click()
+    await page.locator('[data-cy="admin-reveal-now"]').click()
     
     // Fill in reveal reason
     await page.fill('textarea[placeholder*="Technical issue"]', 'Test reveal for e2e')
@@ -68,9 +68,9 @@ test.describe('Reveal and Score Week', () => {
     await page.goto(`/l/${leagueCode}`)
     
     // Should see pick badge instead of generic "Submitted"
-    await expect(page.getByTestId('pick-badge-KC')).toBeVisible()
-    await expect(page.getByTestId('pick-badge-KC')).toContainText('KC')
-    await expect(page.getByTestId('pick-badge-KC')).toContainText('Winner User')
+    await expect(page.locator('[data-cy="pick-badge-KC"]')).toBeVisible()
+    await expect(page.locator('[data-cy="pick-badge-KC"]')).toContainText('KC')
+    await expect(page.locator('[data-cy="pick-badge-KC"]')).toContainText('Winner User')
     
     // 5. Verify distribution panel appears
     await expect(page.getByText('Distribution')).toBeVisible()
@@ -83,8 +83,8 @@ test.describe('Reveal and Score Week', () => {
   test('should show win indicator when user picks correctly', async ({ page }) => {
     // Score week, then reveal
     await page.goto(`/l/${leagueCode}/admin`)
-    await page.getByTestId('admin-score-week').click()
-    await page.getByTestId('admin-reveal-now').click()
+    await page.locator('[data-cy="admin-score-week"]').click()
+    await page.locator('[data-cy="admin-reveal-now"]').click()
     
     await page.fill('textarea[placeholder*="Technical issue"]', 'Test win scenario')
     await page.getByRole('button', { name: 'Force Reveal' }).click()
@@ -93,7 +93,7 @@ test.describe('Reveal and Score Week', () => {
     await page.goto(`/l/${leagueCode}`)
     
     // User should still be alive (no elimination if KC won)
-    const userRow = page.getByTestId('lb-row-winner-user')
+    const userRow = page.locator('[data-cy="lb-row-winner-user"]')
     await expect(userRow).toBeVisible()
     
     // Should be in the "Alive" section, not "Eliminated"

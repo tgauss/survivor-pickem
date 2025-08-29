@@ -39,7 +39,7 @@ export async function GET(
       phase: 'regular', // Could be enhanced to get from week data
       revealed: !data.concealed,
       rolledBack: false, // Could be enhanced to get from week data
-      entries: data.entries.map(entry => ({
+      entries: data.entries.map((entry: any) => ({
         ...entry,
         pick_team_abbr: entry.current_pick?.team_abbr,
         pick_result: (entry.current_pick as any)?.result || 'pending',

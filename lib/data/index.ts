@@ -12,22 +12,39 @@ export type {
   NotSubmittedEntry
 } from './types'
 
+// Cached adapter instance to ensure singleton behavior
+let cachedAdapter: any = null
+
+// Function to clear cached adapter (for tests)
+export function clearCachedAdapter() {
+  cachedAdapter = null
+}
+
 // Lazy import to enable treeshaking
 async function getAdapter() {
+  // Return cached instance if available
+  if (cachedAdapter) {
+    return cachedAdapter
+  }
+  
   // Always use Supabase in production or when explicitly configured
   const isProduction = process.env.NODE_ENV === 'production'
   
   if (USE_SUPABASE || isProduction) {
-    return await import('./adapters/supabase')
+    cachedAdapter = await import('./adapters/supabase')
   } else {
-    return await import('./adapters/local')
+    cachedAdapter = await import('./adapters/local')
   }
+  
+  return cachedAdapter
 }
 
 // Leagues
 export async function listLeagues() {
   const adapter = await getAdapter()
-  return adapter.listLeagues()
+  const leagues = await adapter.listLeagues()
+  console.log('listLeagues: adapter type:', USE_SUPABASE ? 'supabase' : 'local', 'leagues count:', leagues.length)
+  return leagues
 }
 
 export async function getLeagueByCode(leagueCode: string) {

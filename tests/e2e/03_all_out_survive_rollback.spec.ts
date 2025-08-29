@@ -29,7 +29,7 @@ test.describe('All Out Survive Scenario', () => {
     for (const user of users) {
       // Generate invite
       await page.goto(`/l/${leagueCode}/admin`)
-      await page.getByTestId('admin-generate-invite').click()
+      await page.locator('[data-cy="admin-generate-invite"]').click()
       
       await page.waitForSelector('code')
       const inviteElement = await page.locator('code').first()
@@ -37,16 +37,16 @@ test.describe('All Out Survive Scenario', () => {
 
       // Claim invite
       await page.goto(`/l/${leagueCode}/claim/${inviteToken}`)
-      await page.getByTestId('claim-username').fill(user.username)
-      await page.getByTestId('claim-display-name').fill(user.displayName)
-      await page.getByTestId('claim-pin').fill('1234')
+      await page.locator('[data-cy="claim-username"]').fill(user.username)
+      await page.locator('[data-cy="claim-display-name"]').fill(user.displayName)
+      await page.locator('[data-cy="claim-pin"]').fill('1234')
       await page.getByRole('button', { name: 'Join League' }).click()
 
       // Make pick
       await page.goto(`/l/${leagueCode}/week/1`)
-      await page.getByTestId(`pick-${user.team}`).click()
+      await page.locator(`[data-cy="pick-${user.team}"]`).click()
       
-      const duplicateModal = page.getByTestId('duplicate-warning')
+      const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
       if (await duplicateModal.isVisible()) {
         await page.getByRole('button', { name: 'Confirm' }).click()
       }
@@ -57,13 +57,13 @@ test.describe('All Out Survive Scenario', () => {
     await page.goto(`/l/${leagueCode}/admin`)
     
     // Score the week (should trigger all-out survive)
-    await page.getByTestId('admin-score-week').click()
+    await page.locator('[data-cy="admin-score-week"]').click()
     
     // Wait for scoring to complete
     await page.waitForTimeout(1000)
     
     // Reveal the week to see results
-    await page.getByTestId('admin-reveal-now').click()
+    await page.locator('[data-cy="admin-reveal-now"]').click()
     await page.fill('textarea[placeholder*="Technical issue"]', 'All-out survive test')
     await page.getByRole('button', { name: 'Force Reveal' }).click()
     
@@ -74,8 +74,8 @@ test.describe('All Out Survive Scenario', () => {
     await expect(page.getByText('Everyone lost. No strikes this week.')).toBeVisible()
     
     // Both users should still be alive (strikes not incremented)
-    await expect(page.getByTestId('lb-row-loser-one')).toBeVisible()
-    await expect(page.getByTestId('lb-row-loser-two')).toBeVisible()
+    await expect(page.locator('[data-cy="lb-row-loser-one"]')).toBeVisible()
+    await expect(page.locator('[data-cy="lb-row-loser-two"]')).toBeVisible()
     
     // Both should be in "Alive" section, not eliminated
     const aliveSection = page.getByText('Alive (2)')
@@ -99,22 +99,22 @@ test.describe('All Out Survive Scenario', () => {
 
     for (const user of users) {
       await page.goto(`/l/${leagueCode}/admin`)
-      await page.getByTestId('admin-generate-invite').click()
+      await page.locator('[data-cy="admin-generate-invite"]').click()
       
       await page.waitForSelector('code')
       const inviteElement = await page.locator('code').first()
       const inviteToken = await inviteElement.textContent() || ''
 
       await page.goto(`/l/${leagueCode}/claim/${inviteToken}`)
-      await page.getByTestId('claim-username').fill(user.username)
-      await page.getByTestId('claim-display-name').fill(user.displayName)
-      await page.getByTestId('claim-pin').fill('1234')
+      await page.locator('[data-cy="claim-username"]').fill(user.username)
+      await page.locator('[data-cy="claim-display-name"]').fill(user.displayName)
+      await page.locator('[data-cy="claim-pin"]').fill('1234')
       await page.getByRole('button', { name: 'Join League' }).click()
 
       await page.goto(`/l/${leagueCode}/week/1`)
-      await page.getByTestId(`pick-${user.team}`).click()
+      await page.locator(`[data-cy="pick-${user.team}"]`).click()
       
-      const duplicateModal = page.getByTestId('duplicate-warning')
+      const duplicateModal = page.locator('[data-cy="duplicate-warning"]')
       if (await duplicateModal.isVisible()) {
         await page.getByRole('button', { name: 'Confirm' }).click()
       }
@@ -122,7 +122,7 @@ test.describe('All Out Survive Scenario', () => {
 
     // Trigger all-out survive
     await page.goto(`/l/${leagueCode}/admin`)
-    await page.getByTestId('admin-score-week').click()
+    await page.locator('[data-cy="admin-score-week"]').click()
     await page.waitForTimeout(1000)
 
     // Verify admin shows rollback indicator
