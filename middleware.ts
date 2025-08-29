@@ -4,20 +4,8 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Parse league code from pathname if present
-  const leagueMatch = pathname.match(/^\/l\/([^\/]+)/)
-  const leagueCode = leagueMatch?.[1]
-  
-  // Set last_league_code cookie if we have a league code
-  if (leagueCode) {
-    const response = NextResponse.next()
-    response.cookies.set('last_league_code', leagueCode, {
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    })
-    return response
-  }
+  // REMOVED: Cookie setting logic that was destroying session cookies
+  // League tracking is now handled client-side via localStorage
   
   // Handle legacy redirects
   const legacyRoutes = [
@@ -33,7 +21,8 @@ export function middleware(request: NextRequest) {
   for (const route of legacyRoutes) {
     const match = pathname.match(route.pattern)
     if (match) {
-      // Get last league code from cookie
+      // Try to get last league from localStorage via a cookie we DON'T set in middleware
+      // This cookie should only be set by client-side code or API routes
       const lastLeagueCode = request.cookies.get('last_league_code')?.value
       
       if (lastLeagueCode) {
