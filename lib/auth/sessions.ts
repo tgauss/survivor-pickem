@@ -39,13 +39,9 @@ export async function readUserSessionCookie(): Promise<{ user: User; session: Se
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get(COOKIE_NAME)?.value
   
-  console.log('readUserSessionCookie: Looking for cookie:', COOKIE_NAME)
-  console.log('readUserSessionCookie: Found token:', sessionToken ? sessionToken.substring(0, 10) + '...' : 'None')
-  
   if (!sessionToken) return null
   
   const result = await getUserSession(sessionToken)
-  console.log('readUserSessionCookie: getUserSession result:', result ? 'Found user' : 'Not found')
   
   if (!result) return null
   if ('user' in result && 'session' in result) {

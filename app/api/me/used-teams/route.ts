@@ -4,16 +4,11 @@ import { readUserSessionCookie } from '@/lib/auth/sessions'
 
 export async function GET(request: Request) {
   try {
-    // Debug: Check what cookies we're receiving
-    const cookieHeader = request.headers.get('cookie')
-    console.log('used-teams: Cookie header:', cookieHeader)
-    
     const sessionData = await readUserSessionCookie()
-    console.log('used-teams: Session data:', sessionData ? 'Found' : 'Not found')
     
     if (!sessionData) {
       return NextResponse.json(
-        { error: 'Authentication required', cookieHeader },
+        { error: 'Authentication required' },
         { status: 401 }
       )
     }

@@ -26,6 +26,7 @@ export async function GET(
     }
 
     const weekState = await getWeekState(leagueContext.leagueId, weekNo)
+    console.log('weekState API: leagueId:', leagueContext.leagueId, 'weekNo:', weekNo, 'result:', weekState ? 'Found' : 'Null')
     
     return NextResponse.json({ weekState })
   } catch (error) {

@@ -114,9 +114,18 @@ export default function WeekPage({ params }: { params: { leagueCode: string; n: 
         throw new Error('Failed to load week data')
       }
       
+      // Provide default weekState if null
+      const weekState = weekStateData.weekState || {
+        submittedCount: 0,
+        aliveCount: 0,
+        totalCount: 0,
+        concealed: true,
+        rolledBack: false
+      }
+      
       setData({
         games: gamesData.games,
-        weekState: weekStateData.weekState,
+        weekState,
         userPick,
         usedTeams,
         isLoggedIn,
